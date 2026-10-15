@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Avatar } from '../components/Avatar';
 import { LogoMark } from '../components/LogoMark';
@@ -7,8 +8,13 @@ import { POSTS, QUICK } from '../data';
 import { s } from '../styles';
 import { C } from '../theme';
 import type { User } from '../types';
+import { ClinicScreen } from './ClinicScreen';
+import { LibraryScreen } from './LibraryScreen';
 
 export function HomeScreen({ user, goProfile }: { user: User; goProfile: () => void }) {
+  const [page, setPage] = useState<'home' | 'library' | 'clinic'>('home');
+  if (page === 'library') return <LibraryScreen onBack={() => setPage('home')} />;
+  if (page === 'clinic') return <ClinicScreen onBack={() => setPage('home')} />;
   return (
     <ScrollView style={s.screen} showsVerticalScrollIndicator={false}>
       <View style={s.homeHeader}>
@@ -25,7 +31,11 @@ export function HomeScreen({ user, goProfile }: { user: User; goProfile: () => v
 
       <View style={s.quickRow}>
         {QUICK.map((q) => (
-          <TouchableOpacity key={q.label} style={[s.quickTile, { backgroundColor: q.bg, borderColor: q.border }]}>
+          <TouchableOpacity
+            key={q.label}
+            style={[s.quickTile, { backgroundColor: q.bg, borderColor: q.border }]}
+            onPress={q.label === 'Library' ? () => setPage('library') : q.label === 'Clinic' ? () => setPage('clinic') : undefined}
+          >
             <Text style={{ fontSize: 20 }}>{q.icon}</Text>
             <Text style={s.quickLabel}>{q.label}</Text>
           </TouchableOpacity>

@@ -87,7 +87,7 @@ export default function App() {
   if (stage === 'login' || stage === 'signup' || !currentUser) {
     return (
       <SafeAreaView style={s.fill}>
-        <StatusBar barStyle="dark-content" backgroundColor={C.cream} />
+        <StatusBar barStyle="dark-content" />
         {stage === 'signup' ? (
           <SignUpScreen users={users} onSignUp={handleSignUp} onBack={() => setStage('welcome')} onSwitch={() => setStage('login')} />
         ) : (
@@ -118,7 +118,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={s.fill}>
-      <StatusBar barStyle="dark-content" backgroundColor={C.cream} />
+      <StatusBar barStyle="dark-content" />
       <View style={{ flex: 1 }}>{renderScreen()}</View>
       <View style={s.tabBar}>
         {tabs.map((t) => {

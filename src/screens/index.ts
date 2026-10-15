@@ -4,6 +4,8 @@ export { WelcomeScreen } from './WelcomeScreen';
 export { LoginScreen } from './LoginScreen';
 export { SignUpScreen } from './SignUpScreen';
 export { HomeScreen } from './HomeScreen';
+export { ClinicScreen } from './ClinicScreen';
+export { LibraryScreen } from './LibraryScreen';
 export { ExploreScreen } from './ExploreScreen';
 export { BoardsScreen } from './BoardsScreen';
 export { EventsScreen } from './EventsScreen';

@@ -35,3 +35,47 @@ export const SLIDES = [
 export const SEED_USERS: User[] = [
   { name: 'Juan Dela Cruz', email: 'jdelacruz@tip.edu.ph', password: 'password123', university: 'Technological Institute of the Philippines Q.C.', program: 'BS Computer Science', year: '3rd year' },
 ];
+
+export const LIBRARY = {
+  name: 'Main Library',
+  blurb: 'Find quiet study zones, collaborative rooms, print resources, and online journals for every program.',
+  info: [
+    { key: 'hours', label: 'OPENING HOURS', value: 'Mon–Fri · 7:00 AM–8:00 PM', icon: '🕒', bg: '#FDF1C4' },
+    { key: 'location', label: 'LOCATION', value: 'PE Center, 2nd–4th Floors', icon: '📍', bg: '#FADFD6' },
+    { key: 'contact', label: 'CONTACT', value: 'library.qc@tip.edu.ph · local 225', icon: '✉️', bg: '#E6EDFB' },
+  ],
+  email: 'library.qc@tip.edu.ph',
+  plan: [
+    { key: 'book', title: 'Book a study room', sub: 'Reserve a group room for up to 2 hours', icon: '🗓️', bg: '#FDF1C4' },
+    { key: 'spaces', title: 'Explore study spaces', sub: 'Quiet, group, computer, and reading zones', icon: '🛋️', bg: '#E3F0E4' },
+  ],
+};
+
+export const CLINIC = {
+  name: 'Care on campus',
+  blurb: 'First aid, health assessment, and basic medical care are available to enrolled TIP students and staff.',
+  info: [
+    { key: 'hours', label: 'CLINIC HOURS', value: 'Mon–Fri · 7:00 AM–6:00 PM', icon: '🕒', bg: '#FDF1C4' },
+    { key: 'location', label: 'LOCATION', value: 'Tech Building, Ground Floor', icon: '📍', bg: '#FDF1C4' },
+    { key: 'contact', label: 'CONTACT', value: '(02) 8911 0964 · local 126', icon: '📞', bg: '#E6EDFB' },
+  ],
+  phone: '0289110964',
+  emergencyNote: 'Notify Campus Security immediately after.',
+  services: [
+    { key: 'consult', label: 'Consultation', icon: '🩺' },
+    { key: 'firstaid', label: 'First aid', icon: '🩹' },
+    { key: 'certs', label: 'Certificates', icon: '📄' },
+  ],
+};
+
+export type PlaceKind = 'study' | 'food' | 'orgs';
+export interface Place {
+  id: string; name: string; kind: PlaceKind; type: string; price?: string;
+  distance: string; status: string; emoji: string;
+}
+export const PLACES: Place[] = [
+  { id: '1', name: 'Brew & Books Cafe', kind: 'food', type: 'Cafe', price: '₱120–250', distance: '0.3 km', status: 'Open now', emoji: '☕' },
+  { id: '2', name: 'TIP QC Library Study Hall', kind: 'study', type: 'Study space', price: 'Free', distance: '0.5 km', status: 'Open until 9 PM', emoji: '📚' },
+  { id: '3', name: 'TIP Photography Society Hub', kind: 'orgs', type: 'Campus community', distance: '0.8 km', status: 'Members here now', emoji: '📷' },
+  { id: '4', name: 'Cubao Ramen House', kind: 'food', type: 'Restaurant', price: '₱180–350', distance: '1.2 km', status: 'Busy · 15 min wait', emoji: '🍜' },
+];
