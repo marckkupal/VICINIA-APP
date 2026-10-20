@@ -3,9 +3,19 @@ import { BackButton } from '../components/BackButton';
 import { CLINIC } from '../data';
 import { s } from '../styles';
 import { C } from '../theme';
+import { useToast } from '../components/Toast';
 
 export function ClinicScreen({ onBack }: { onBack: () => void }) {
-  const soon = (title: string) => Alert.alert(title, 'This feature is coming soon.');
+  const toast = useToast();
+  const callClinic = () => Linking.openURL(`tel:${CLINIC.phone}`).catch(() => toast.show('Unable to place the call.'));
+  const request = () => Alert.alert('Request an appointment', `Call the clinic at ${CLINIC.phone}?`, [
+    { text: 'Call clinic', onPress: callClinic },
+    { text: 'Not now', style: 'cancel' },
+  ]);
+  const service = (label: string) => Alert.alert(label, 'Walk-ins are welcome during clinic hours.', [
+    { text: 'Call clinic', onPress: callClinic },
+    { text: 'OK', style: 'cancel' },
+  ]);
   const call911 = () =>
     Linking.openURL('tel:911').catch(() => Alert.alert('Unable to call', 'Please dial 911 directly.'));
 
@@ -17,7 +27,7 @@ export function ClinicScreen({ onBack }: { onBack: () => void }) {
           <Text style={s.libTitle}>Clinic</Text>
           <Text style={s.libSub}>University Health Service</Text>
         </View>
-        <TouchableOpacity style={s.libAddBtn} onPress={() => soon('Quick actions')}>
+        <TouchableOpacity style={s.libAddBtn} onPress={request} accessibilityLabel="Request appointment">
           <Text style={{ fontWeight: '900', fontSize: 20, color: C.yellow, marginTop: -1 }}>+</Text>
         </TouchableOpacity>
         <Text style={{ fontSize: 22, marginLeft: 12 }}>❤️</Text>
@@ -63,7 +73,7 @@ export function ClinicScreen({ onBack }: { onBack: () => void }) {
         <Text style={{ fontSize: 14, fontWeight: '800', color: C.green }}>Walk-ins welcome</Text>
       </View>
 
-      <TouchableOpacity style={s.libPlanRow} activeOpacity={0.7} onPress={() => soon('Request an appointment')}>
+      <TouchableOpacity style={s.libPlanRow} activeOpacity={0.7} onPress={request}>
         <View style={[s.libPlanIcon, { backgroundColor: '#F8E6E1' }]}><Text style={{ fontSize: 22 }}>🗓️</Text></View>
         <View style={{ flex: 1 }}>
           <Text style={s.postName}>Request an appointment</Text>
@@ -78,13 +88,14 @@ export function ClinicScreen({ onBack }: { onBack: () => void }) {
             key={svc.key}
             style={[s.serviceTile, idx < CLINIC.services.length - 1 && { marginRight: 10 }]}
             activeOpacity={0.7}
-            onPress={() => soon(svc.label)}
+            onPress={() => service(svc.label)}
           >
             <Text style={{ fontSize: 20 }}>{svc.icon}</Text>
             <Text style={s.serviceLabel}>{svc.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
+      {toast.node}
       <View style={{ height: 24 }} />
     </ScrollView>
   );

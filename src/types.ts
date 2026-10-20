@@ -1,5 +1,5 @@
 export type TabKey = 'home' | 'explore' | 'boards' | 'events' | 'profile';
-export type Stage = 'onboarding' | 'welcome' | 'login' | 'signup' | 'app';
+export type Stage = 'onboarding' | 'welcome' | 'login' | 'signup' | 'forgot' | 'app';
 
 export interface User {
   name: string;
@@ -16,3 +16,12 @@ export interface Post {
   likes: number; comments: number; live?: boolean;
 }
 export interface Board { id: string; name: string; members: number; emoji: string }
+
+// OSA / Guidance requests (inquiries and appointment requests) saved on this device.
+export type OfficeKey = 'osa' | 'guidance';
+export interface OfficeRequest {
+  id: string; ref: string; office: OfficeKey; kind: 'inquiry' | 'appointment';
+  topic: string; message: string; name: string; email: string;
+  date?: string; time?: string;
+  status: 'submitted' | 'cancelled'; createdAt: number;
+}

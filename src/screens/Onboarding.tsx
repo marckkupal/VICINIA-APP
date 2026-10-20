@@ -12,7 +12,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
   if (step === -1) {
     return (
       <View style={[s.fill, { backgroundColor: C.yellow, padding: 24 }]}>
-        <StatusBar barStyle="dark-content" backgroundColor={C.yellow} />
+        <StatusBar barStyle="dark-content" />
         <View style={s.pill}><Text style={s.pillText}>YOUR CAMPUS COMMUNITY</Text></View>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <LogoMark size={96} />
@@ -30,7 +30,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
   const last = step === SLIDES.length - 1;
   return (
     <View style={[s.fill, { backgroundColor: C.dark }]}>
-      <StatusBar barStyle="light-content" backgroundColor={C.yellow} />
+      <StatusBar barStyle="light-content" />
       <View style={s.slideTop}>
         <View style={s.slideNav}>
           <TouchableOpacity style={s.circleSm} onPress={() => setStep(step - 1)}><Text>←</Text></TouchableOpacity>

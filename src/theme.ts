@@ -10,5 +10,6 @@ export const C = {
   error: '#D9534F',
   errorBg: '#F8E9E5',
   green: '#3C9A5F',
+  successBg: '#EAF3EC',
   orange: '#E8714A',
 };

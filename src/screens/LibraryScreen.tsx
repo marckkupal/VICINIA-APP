@@ -1,17 +1,54 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, Linking } from 'react-native';
 import { BackButton } from '../components/BackButton';
+import { useToast } from '../components/Toast';
+import { useActionSheet } from '../components/ActionSheet';
 import { LIBRARY } from '../data';
+import type { LibResource } from '../data';
 import { s } from '../styles';
 import { C } from '../theme';
+import type { User } from '../types';
+import { campusLabel } from '../utils';
+import { LibraryCatalog } from './LibraryCatalog';
+import { LibraryResource } from './LibraryResource';
+import { LibraryBooking, BookingSummary } from './LibraryBooking';
+import type { Booking } from './LibraryBooking';
 
-export function LibraryScreen({ onBack }: { onBack: () => void }) {
+type View_ = 'home' | 'catalog' | 'resource' | 'booking' | 'summary';
+
+export function LibraryScreen({ onBack, user }: { onBack: () => void; user?: User }) {
   const [query, setQuery] = useState('');
+  const [view, setView] = useState<View_>('home');
+  const [resource, setResource] = useState<LibResource | null>(null);
+  const [booking, setBooking] = useState<Booking | null>(null);
 
-  const search = () => {
-    if (!query.trim()) return;
-    Alert.alert('Library catalog', `Catalog search for “${query.trim()}” is coming soon.`);
+  const campus = user ? campusLabel(user.university) : 'TIP Quezon City';
+  const student = user ? `${user.name} · ${campus}` : 'Student';
+
+  const toast = useToast();
+  const sheet = useActionSheet();
+  const search = () => setView('catalog');
+
+  if (view === 'catalog') {
+    return <LibraryCatalog initialQuery={query} campus={campus} onBack={() => setView('home')} onOpen={(r) => { setResource(r); setView('resource'); }} />;
+  }
+  if (view === 'resource' && resource) {
+    return <LibraryResource resource={resource} onBack={() => setView('catalog')} />;
+  }
+  if (view === 'booking') {
+    return <LibraryBooking onBack={() => setView('home')} onConfirm={(b) => { setBooking(b); setView('summary'); }} />;
+  }
+  if (view === 'summary' && booking) {
+    return <BookingSummary booking={booking} student={student} onBack={() => setView('booking')} onDone={() => setView('home')} />;
+  }
+
+  const openPlan = (key: string, title: string) => {
+    if (key === 'book') return setView('booking');
+    Linking.openURL(`mailto:${LIBRARY.email}?subject=${encodeURIComponent(title)}`).catch(() =>
+      toast.show(`Please contact the library desk: ${LIBRARY.email}`)
+    );
   };
+
   const askLibrarian = () => {
     Linking.openURL(`mailto:${LIBRARY.email}?subject=Research question`).catch(() =>
       Alert.alert('Email unavailable', `Write to ${LIBRARY.email}`)
@@ -26,7 +63,15 @@ export function LibraryScreen({ onBack }: { onBack: () => void }) {
           <Text style={s.libTitle}>Library</Text>
           <Text style={s.libSub}>Resources for study and discovery</Text>
         </View>
-        <TouchableOpacity style={s.libAddBtn}>
+        <TouchableOpacity
+          style={s.libAddBtn}
+          accessibilityLabel="Library actions"
+          onPress={() => sheet.open('Library', [
+            { text: 'Book a study room', onPress: () => setView('booking') },
+            { text: 'Search catalog', onPress: search },
+            { text: 'Ask a librarian', onPress: askLibrarian },
+          ])}
+        >
           <Text style={{ fontWeight: '900', fontSize: 20, color: C.yellow, marginTop: -1 }}>+</Text>
         </TouchableOpacity>
         <Text style={{ fontSize: 22, marginLeft: 12 }}>📖</Text>
@@ -78,7 +123,7 @@ export function LibraryScreen({ onBack }: { onBack: () => void }) {
           key={p.key}
           style={s.libPlanRow}
           activeOpacity={0.7}
-          onPress={() => Alert.alert(p.title, 'This feature is coming soon.')}
+          onPress={() => openPlan(p.key, p.title)}
         >
           <View style={[s.libPlanIcon, { backgroundColor: p.bg }]}><Text style={{ fontSize: 22 }}>{p.icon}</Text></View>
           <View style={{ flex: 1 }}>
@@ -88,6 +133,9 @@ export function LibraryScreen({ onBack }: { onBack: () => void }) {
           <Text style={s.menuChevron}>›</Text>
         </TouchableOpacity>
       ))}
+
+      {toast.node}
+      {sheet.node}
 
       <TouchableOpacity style={s.libAsk} activeOpacity={0.8} onPress={askLibrarian}>
         <Text style={{ fontSize: 22, marginRight: 12 }}>💬</Text>

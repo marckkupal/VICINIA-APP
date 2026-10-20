@@ -1,30 +1,60 @@
 import { useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SearchBar } from '../components/SearchBar';
 import { PLACES } from '../data';
-import type { PlaceKind } from '../data';
+import { useActionSheet } from '../components/ActionSheet';
 import { s } from '../styles';
 import { C } from '../theme';
+import { ExploreMap, filterPlaces } from './ExploreMap';
+import type { PlaceFilter } from './ExploreMap';
+import { PLACE_FILTERS } from './ExploreMap';
+import { PlaceDetails, PlaceDirections } from './PlaceDetails';
+import type { Place } from '../data';
 
-type Filter = 'all' | PlaceKind;
-const FILTERS: { key: Filter; label: string; icon?: string }[] = [
-  { key: 'all', label: 'All' },
-  { key: 'study', label: 'Study', icon: '📖' },
-  { key: 'food', label: 'Food', icon: '🍴' },
-  { key: 'orgs', label: 'Orgs', icon: '👥' },
-];
-
-export function ExploreScreen() {
-  const [filter, setFilter] = useState<Filter>('all');
+export function ExploreScreen({ university = 'Technological Institute of the Philippines - Quezon City' }: { university?: string }) {
+  const [open, setOpen] = useState<Place | null>(null);
+  const [route, setRoute] = useState(false);
+  const [filter, setFilter] = useState<PlaceFilter>('all');
+  const [showMap, setShowMap] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [saved, setSaved] = useState<Record<string, boolean>>({});
 
-  const places = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return PLACES.filter(
-      (p) => (filter === 'all' || p.kind === filter) && (!q || `${p.name} ${p.type}`.toLowerCase().includes(q))
+  const sheet = useActionSheet();
+  const addMenu = () => sheet.open('Explore', [
+    { text: 'Open map', onPress: () => setShowMap(true) },
+    { text: 'Clear filters', onPress: () => { setFilter('all'); setQuery(''); } },
+  ]);
+
+  const places = useMemo(() => filterPlaces(PLACES, filter, query), [filter, query]);
+
+  const toggleSave = (id: string) => setSaved((m) => ({ ...m, [id]: !m[id] }));
+  if (open && route) return <PlaceDirections place={open} university={university} onBack={() => setRoute(false)} />;
+  if (open) {
+    return (
+      <PlaceDetails
+        place={open}
+        saved={!!saved[open.id]}
+        onToggleSave={() => toggleSave(open.id)}
+        onBack={() => setOpen(null)}
+        onDirections={open.id === '1' ? () => setRoute(true) : undefined}
+        backLabel={showMap ? 'Back to map' : undefined}
+      />
     );
-  }, [filter, query]);
+  }
+  if (showMap) {
+    return (
+      <ExploreMap
+        places={PLACES}
+        query={query} onQuery={setQuery} filter={filter} onFilter={setFilter}
+        selectedId={selectedId} onSelect={setSelectedId}
+        saved={saved} onToggleSave={toggleSave}
+        onBack={() => setShowMap(false)}
+        onOpen={setOpen}
+        onDirections={(p) => { setOpen(p); setRoute(true); }}
+      />
+    );
+  }
 
   return (
     <ScrollView style={s.screen} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
@@ -33,7 +63,7 @@ export function ExploreScreen() {
           <Text style={s.libTitle}>Explore nearby</Text>
           <Text style={s.libSub}>Places around TIP Quezon City</Text>
         </View>
-        <TouchableOpacity style={s.libAddBtn}>
+        <TouchableOpacity style={s.libAddBtn} onPress={addMenu} accessibilityLabel="Explore options">
           <Text style={{ fontWeight: '900', fontSize: 20, color: C.yellow, marginTop: -1 }}>+</Text>
         </TouchableOpacity>
       </View>
@@ -45,7 +75,7 @@ export function ExploreScreen() {
         <View style={{ flex: 1 }}>
           <Text style={s.postName}>View map</Text>
           <Text style={[s.muted, { fontSize: 13, marginTop: 2 }]}>Open the Explore map to browse nearby places.</Text>
-          <TouchableOpacity style={s.openMapPill} onPress={() => Alert.alert('Explore map', 'The map view is coming soon.')}>
+          <TouchableOpacity style={s.openMapPill} onPress={() => setShowMap(true)} accessibilityRole="button" accessibilityLabel="Open map">
             <Text style={{ fontSize: 12, marginRight: 6 }}>🗺️</Text>
             <Text style={s.tilePillText}>Open map</Text>
           </TouchableOpacity>
@@ -54,7 +84,7 @@ export function ExploreScreen() {
 
       <Text style={s.eyebrow}>EXPLORE</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
-        {FILTERS.map((f) => {
+        {PLACE_FILTERS.map((f) => {
           const active = filter === f.key;
           return (
             <TouchableOpacity key={f.key} style={[s.filterChip, active && s.filterChipActive]} onPress={() => setFilter(f.key)}>
@@ -66,7 +96,7 @@ export function ExploreScreen() {
       </ScrollView>
 
       {places.map((p) => (
-        <TouchableOpacity key={p.id} style={s.placeCard} activeOpacity={0.8}>
+        <TouchableOpacity key={p.id} style={s.placeCard} activeOpacity={0.8} onPress={() => setOpen(p)}>
           <View style={s.placeThumb}><Text style={{ fontSize: 40 }}>{p.emoji}</Text></View>
           <View style={{ flex: 1 }}>
             <Text style={s.placeName}>{p.name}</Text>
@@ -75,7 +105,7 @@ export function ExploreScreen() {
           </View>
           <TouchableOpacity
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            onPress={() => setSaved((m) => ({ ...m, [p.id]: !m[p.id] }))}
+            onPress={() => toggleSave(p.id)}
             accessibilityLabel={saved[p.id] ? 'Remove bookmark' : 'Bookmark place'}
           >
             <Text style={{ fontSize: 20, opacity: saved[p.id] ? 1 : 0.35 }}>🔖</Text>
@@ -83,7 +113,12 @@ export function ExploreScreen() {
         </TouchableOpacity>
       ))}
 
-      {places.length === 0 && <Text style={[s.hint, { marginBottom: 16 }]}>No places match your search.</Text>}
+      {places.length === 0 && (
+        <View style={{ alignItems: 'center', marginBottom: 16 }}>
+          <Text style={[s.hint, { marginTop: 0, marginBottom: 8 }]}>No places match your search.</Text>
+          <TouchableOpacity onPress={() => { setQuery(''); setFilter('all'); }}><Text style={s.linkBtnText}>Clear search and filters</Text></TouchableOpacity>
+        </View>
+      )}
 
       <View style={s.popularCard}>
         <Text style={{ fontSize: 18, marginRight: 12 }}>✨</Text>
@@ -93,6 +128,7 @@ export function ExploreScreen() {
         </View>
       </View>
       <View style={{ height: 24 }} />
+      {sheet.node}
     </ScrollView>
   );
 }

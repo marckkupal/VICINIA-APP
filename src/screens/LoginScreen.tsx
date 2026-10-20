@@ -16,7 +16,7 @@ import { C } from '../theme';
 import type { User } from '../types';
 import { norm } from '../utils';
 
-export function LoginScreen({ users, onLogin, onBack, onSwitch }: { users: User[]; onLogin: (u: User) => void; onBack: () => void; onSwitch: () => void }) {
+export function LoginScreen({ users, onLogin, onBack, onSwitch, onForgot }: { users: User[]; onLogin: (u: User) => void; onBack: () => void; onSwitch: () => void; onForgot?: () => void }) {
   const [id, setId] = useState('');
   const [pw, setPw] = useState('');
   const [error, setError] = useState(false);
@@ -43,6 +43,11 @@ export function LoginScreen({ users, onLogin, onBack, onSwitch }: { users: User[
             <Text style={{ color: C.error, marginRight: 8 }}>⚠️</Text>
             <Text style={s.errorText}>Incorrect email, username, or password. Please try again.</Text>
           </View>
+        )}
+        {!!onForgot && (
+          <TouchableOpacity onPress={onForgot} style={{ alignSelf: 'center', marginTop: 12 }}>
+            <Text style={s.linkBtnText}>Forgot password?</Text>
+          </TouchableOpacity>
         )}
         <Text style={s.hint}>Demo: jdelacruz@tip.edu.ph / password123</Text>
       </ScrollView>

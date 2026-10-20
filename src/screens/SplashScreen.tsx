@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, StatusBar, Animated } from 'react-native';
 import { s } from '../styles';
-import { C } from '../theme';
 
 export function SplashScreen() {
   const opacity = React.useRef(new Animated.Value(0)).current;
@@ -16,7 +15,7 @@ export function SplashScreen() {
 
   return (
     <View style={s.splash}>
-      <StatusBar barStyle="dark-content" backgroundColor={C.yellow} />
+      <StatusBar barStyle="dark-content" />
       <Animated.Image
         source={require('../../assets/vicinia-logo.png')}
         style={[s.splashLogo, { opacity, transform: [{ scale }] }]}

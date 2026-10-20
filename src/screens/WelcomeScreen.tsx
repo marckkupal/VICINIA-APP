@@ -7,7 +7,7 @@ import { C } from '../theme';
 export function WelcomeScreen({ onSignUp, onLogin }: { onSignUp: () => void; onLogin: () => void }) {
   return (
     <View style={[s.fill, { backgroundColor: C.yellow, padding: 24 }]}>
-      <StatusBar barStyle="dark-content" backgroundColor={C.yellow} />
+      <StatusBar barStyle="dark-content" />
       <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 24 }}>
         <LogoMark size={40} />
         <Text style={[s.navWordmark, { color: C.dark, fontSize: 22 }]}>  vicinia</Text>
