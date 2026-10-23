@@ -18,10 +18,10 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
           <LogoMark size={96} />
           <Text style={s.bigWordmark}>vicinia</Text>
           <Text style={s.introTitle}>Your campus,{'\n'}closer than ever.</Text>
-          <Text style={s.introBody}>Find people, places, events, communities, and wellbeing support around TIP Quezon City and Manila.</Text>
+          <Text style={s.introBody}>Find people, places, events, communities, and wellbeing support around TIP Quezon City.</Text>
         </View>
         <PrimaryButton dark label="Get started  →" onPress={() => setStep(0)} />
-        <Text style={s.footnote}>TIP · Quezon City & Manila</Text>
+        <Text style={s.footnote}>TIP · Quezon City</Text>
       </View>
     );
   }
@@ -40,7 +40,9 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
           </View>
           <TouchableOpacity onPress={onDone}><Text style={s.skip}>Skip</Text></TouchableOpacity>
         </View>
-        <Text style={s.slideIcon}>{slide.icon}</Text>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ fontSize: 150, textAlign: 'center' }}>{slide.icon}</Text>
+        </View>
       </View>
       <View style={s.slideBottom}>
         <Text style={s.kicker}>{slide.kicker}</Text>

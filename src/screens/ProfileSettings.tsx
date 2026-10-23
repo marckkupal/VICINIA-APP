@@ -1,8 +1,13 @@
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useToast } from '../components/Toast';
 import { LibPage } from '../components/LibPage';
 import { Toggle } from '../components/Toggle';
+import { ProfileIcon } from '../components/ProfileIcon';
+import type { ProfileIconName } from '../components/ProfileIcon';
+import { agoLabel, notifActions, useNotifications } from '../notifications';
+import type { NotifType } from '../notifications';
 import { s } from '../styles';
 import { C } from '../theme';
 import type { User } from '../types';
@@ -14,10 +19,10 @@ function Section({ children }: { children: string }) {
   return <Text style={[s.lbH2, { fontSize: 17 }]}>{children}</Text>;
 }
 
-function IconRow({ icon, tint, title, sub, onPress }: { icon: string; tint: string; title: string; sub: string; onPress?: () => void }) {
+function IconRow({ icon, tint, title, sub, onPress }: { icon: ReactNode; tint: string; title: string; sub: string; onPress?: () => void }) {
   return (
     <TouchableOpacity style={[s.lbCard, { marginBottom: 12 }]} activeOpacity={0.8} onPress={onPress}>
-      <View style={[s.lbCardIcon, { backgroundColor: tint }]}><Text style={{ fontSize: 20 }}>{icon}</Text></View>
+      <View style={[s.lbCardIcon, { backgroundColor: tint }]}>{typeof icon === 'string' ? <Text style={{ fontSize: 20 }}>{icon}</Text> : icon}</View>
       <View style={{ flex: 1 }}>
         <Text style={s.lbCardTitle}>{title}</Text>
         <Text style={s.lbCardMeta}>{sub}</Text>
@@ -40,26 +45,32 @@ function ToggleRow({ title, sub, on, onToggle, last }: { title: string; sub: str
 }
 
 /* ---------- Notifications ---------- */
+const NOTIF_ICON: Record<NotifType, { icon: ProfileIconName; bg: string }> = {
+  follow: { icon: 'user', bg: '#E3F0E4' }, message: { icon: 'message', bg: '#E6EDFB' }, board: { icon: 'message', bg: '#FDF1C4' },
+  event: { icon: 'calendar', bg: '#DCEADB' }, place: { icon: 'pin', bg: '#FADFD6' }, library: { icon: 'book', bg: '#FDF1C4' }, welcome: { icon: 'bell', bg: '#F3D9D6' },
+};
 export function NotificationsScreen({ onBack }: { onBack: () => void }) {
   const [prefs, setPrefs] = useState({ replies: true, events: true, recs: false });
   const [showPrefs, setShowPrefs] = useState(true);
   const toast = useToast();
+  const { items } = useNotifications();
   const flip = (k: keyof typeof prefs) => setPrefs((p) => ({ ...p, [k]: !p[k] }));
 
   return (
     <LibPage title="Notifications" sub="Your campus activity" onBack={onBack}>
       <View style={note}>
-        <Text style={s.privacyText}>🛡️  Simulated activity only. No live notifications or device permissions are enabled.</Text>
+        <Text style={s.privacyText}>Simulated activity only. No live notifications or device permissions are enabled.</Text>
       </View>
       {toast.node}
 
-      <Section>Today</Section>
-      <IconRow icon="💬" tint="#FDF1C4" title="Mika replied in Photography" sub="“Beginners are welcome!” · Demo · 10 min ago" onPress={() => toast.show('Opening this thread is a demo preview.')} />
-      <IconRow icon="🗓️" tint="#DCEADB" title="Org Fair 2026" sub="You’re registered · Oct 8 · TIP QC Quadrangle · Demo reminder" onPress={() => toast.show('You’re registered for Org Fair 2026 (demo).')} />
-      <IconRow icon="🔔" tint="#F3D9D6" title="Welcome to Vicinia" sub="Find people, places and support on campus. Demo · Earlier today" onPress={() => toast.show('Welcome to Vicinia!')} />
+      <Section>Recent activity</Section>
+      {items.length === 0 && <Text style={[s.muted, { fontSize: 13, marginBottom: 16 }]}>No notifications yet. Replies, messages and event reminders will show up here.</Text>}
+      {items.slice(0, 5).map((n) => (
+        <IconRow key={n.id} icon={<ProfileIcon name={NOTIF_ICON[n.type].icon} size={20} />} tint={NOTIF_ICON[n.type].bg} title={n.title} sub={`${n.body} · ${agoLabel(n.createdAt)}`} onPress={() => notifActions.markRead(n.id)} />
+      ))}
 
       <Section>Notification preferences</Section>
-      <IconRow icon="⚙️" tint="#E6E9F8" title="Manage preferences" sub="Static settings preview below" onPress={() => setShowPrefs((v) => !v)} />
+      <IconRow icon={<ProfileIcon name="settings" size={20} />} tint="#E6E9F8" title="Manage preferences" sub="Static settings preview below" onPress={() => setShowPrefs((v) => !v)} />
       {showPrefs && (
         <View style={[s.lbCard, { flexDirection: 'column', alignItems: 'stretch', marginBottom: 10 }]}>
           <ToggleRow title="Board replies" sub="Replies to your campus conversations" on={prefs.replies} onToggle={() => flip('replies')} />

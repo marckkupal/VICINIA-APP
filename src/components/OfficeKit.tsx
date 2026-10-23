@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Linking, Text, TouchableOpacity, View } from 'react-native';
-import { APPOINTMENT_TIMES } from '../data';
+import { Linking, Text, TouchableOpacity, View } from 'react-native';
+import { usePopup } from './Popup';
+import { OfficeIcon } from './OfficeIcon';
+import type { OfficeIconName } from './OfficeIcon';
 import type { CampusEvent, OfficeData, OfficeService } from '../data';
-import { fmtTime } from '../screens/LibraryBooking';
 import { s } from '../styles';
 import { C } from '../theme';
 import type { OfficeRequest, User } from '../types';
-import { EMAIL_REGEX, makeRef, nextWeekdays } from '../utils';
+import { EMAIL_REGEX, makeRef } from '../utils';
 import { Field } from './Field';
 import { LibPage } from './LibPage';
 import { PrimaryButton } from './PrimaryButton';
@@ -18,9 +19,9 @@ import { Select } from './Select';
 export function OfficeHero({ office }: { office: OfficeData }) {
   return (
     <View style={[s.libHero, { backgroundColor: office.heroBg }]}>
-      <View style={s.libHeroIcon}><Text style={{ fontSize: 28 }}>{office.heroIcon}</Text></View>
+      <View style={s.libHeroIcon}><OfficeIcon name={office.heroIcon as OfficeIconName} size={32} color={C.yellow} strokeWidth={1.7} /></View>
       <View style={{ flex: 1 }}>
-        <Text style={s.libHeroTitle}>{office.name}</Text>
+        <Text style={s.libHeroTitle}>{office.heroTitle ?? office.name}</Text>
         <Text style={s.libHeroBody}>{office.blurb}</Text>
       </View>
     </View>
@@ -32,7 +33,7 @@ export function OfficeInfoCard({ office }: { office: OfficeData }) {
     <View style={s.libInfoCard}>
       {office.info.map((i, idx) => (
         <View key={i.key} style={[s.rowCenter, idx < office.info.length - 1 && { marginBottom: 10 }]}>
-          <View style={[s.libInfoIcon, { backgroundColor: i.bg }]}><Text style={{ fontSize: 16 }}>{i.icon}</Text></View>
+          <View style={[s.libInfoIcon, { backgroundColor: i.bg }]}><OfficeIcon name={i.icon as OfficeIconName} size={18} /></View>
           <View style={{ flex: 1 }}>
             <Text style={s.libInfoLabel}>{i.label}</Text>
             <Text style={s.libInfoValue}>{i.value}</Text>
@@ -43,15 +44,35 @@ export function OfficeInfoCard({ office }: { office: OfficeData }) {
   );
 }
 
+// Simple "how to request an appointment" guide: numbered steps, no form.
+export function AppointmentSteps({ title, steps }: { title: string; steps: { title: string; body: string }[] }) {
+  return (
+    <View style={s.lbPlanCard}>
+      <Text style={s.lbPlanTitle}>{title}</Text>
+      {steps.map((st, i) => (
+        <View key={st.title} style={{ flexDirection: 'row', marginTop: 12 }}>
+          <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: C.yellow, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+            <Text style={{ fontWeight: '900', fontSize: 13, color: C.dark }}>{i + 1}</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={s.postName}>{st.title}</Text>
+            <Text style={[s.lbBody, { marginTop: 2 }]}>{st.body}</Text>
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 export function ServiceRow({ svc, sub, onPress }: { svc: OfficeService; sub?: string; onPress: () => void }) {
   return (
     <TouchableOpacity style={s.libPlanRow} activeOpacity={0.7} onPress={onPress} accessibilityRole="button" accessibilityLabel={svc.title}>
-      <View style={[s.libPlanIcon, { backgroundColor: svc.bg }]}><Text style={{ fontSize: 22 }}>{svc.icon}</Text></View>
+      <View style={[s.libPlanIcon, { backgroundColor: svc.bg }]}><OfficeIcon name={svc.icon as OfficeIconName} size={24} /></View>
       <View style={{ flex: 1 }}>
         <Text style={s.postName}>{svc.title}</Text>
         <Text style={[s.muted, { fontSize: 13, marginTop: 2 }]}>{sub ?? svc.sub}</Text>
       </View>
-      <Text style={s.menuChevron}>›</Text>
+      <OfficeIcon name="chevronRight" size={20} color={C.muted} />
     </TouchableOpacity>
   );
 }
@@ -70,27 +91,45 @@ export function AnnouncementRow({ event: e, onPress }: { event: CampusEvent; onP
 }
 
 export function EmergencyCard({ sub = 'Tap to open your phone’s dialer.' }: { sub?: string }) {
-  const call911 = () => Linking.openURL('tel:911').catch(() => Alert.alert('Unable to call', 'Please dial 911 directly.'));
+  const popup = usePopup();
+  const call911 = () => popup.show({
+    iconName: 'siren', iconBg: C.errorBg,
+    title: 'Call 911?',
+    body: 'This opens your phone’s dialer. Notify Campus Security immediately after.',
+    actions: [
+      { text: 'Cancel', style: 'secondary' },
+      {
+        text: 'Call 911', style: 'dark',
+        onPress: () => Linking.openURL('tel:911').catch(() => popup.show({
+          icon: '⚠️', iconBg: C.errorBg, title: 'Unable to call', body: 'Please dial 911 directly from your phone.',
+          actions: [{ text: 'OK' }],
+        })),
+      },
+    ],
+  });
   return (
-    <TouchableOpacity style={s.emergency} activeOpacity={0.8} onPress={call911} accessibilityRole="button" accessibilityLabel="Call 911">
-      <Text style={{ fontSize: 20, marginRight: 12 }}>🚨</Text>
-      <View style={{ flex: 1 }}>
-        <Text style={s.emergencyTitle}>For emergencies, call 911</Text>
-        <Text style={s.emergencySub}>{sub}</Text>
-      </View>
-    </TouchableOpacity>
+    <>
+      <TouchableOpacity style={s.emergency} activeOpacity={0.8} onPress={call911} accessibilityRole="button" accessibilityLabel="Call 911">
+        <View style={{ marginRight: 12 }}><OfficeIcon name="siren" size={24} color={C.yellow} /></View>
+        <View style={{ flex: 1 }}>
+          <Text style={s.emergencyTitle}>For emergencies, call 911</Text>
+          <Text style={s.emergencySub}>{sub}</Text>
+        </View>
+      </TouchableOpacity>
+      {popup.node}
+    </>
   );
 }
 
 export function ContactCard({ title, sub, onPress }: { title: string; sub: string; onPress: () => void }) {
   return (
     <TouchableOpacity style={s.libAsk} activeOpacity={0.8} onPress={onPress} accessibilityRole="button" accessibilityLabel={title}>
-      <Text style={{ fontSize: 22, marginRight: 12 }}>💬</Text>
+      <View style={{ marginRight: 12 }}><OfficeIcon name="message" size={24} color={C.yellow} /></View>
       <View style={{ flex: 1 }}>
         <Text style={s.libAskTitle}>{title}</Text>
         <Text style={s.libAskSub}>{sub}</Text>
       </View>
-      <Text style={{ fontSize: 18, fontWeight: '800', color: C.yellow }}>↗</Text>
+      <OfficeIcon name="arrowUpRight" size={20} color={C.yellow} strokeWidth={2.2} />
     </TouchableOpacity>
   );
 }
@@ -151,7 +190,7 @@ export function ServiceDetail({ office, svc, onBack, onStart }: { office: Office
         <Text style={s.evKicker}>{office.short.toUpperCase()} · SERVICE</Text>
         <View style={s.evHeroRow}>
           <Text style={s.evHeroTitle}>{svc.title}</Text>
-          <Text style={{ fontSize: 38, marginLeft: 8 }}>{svc.icon}</Text>
+          <View style={{ marginLeft: 8 }}><OfficeIcon name={svc.icon as OfficeIconName} size={40} strokeWidth={1.5} /></View>
         </View>
       </View>
 
@@ -181,11 +220,20 @@ export function ServiceDetail({ office, svc, onBack, onStart }: { office: Office
 
 /* ---------- Forms ---------- */
 
-const confirmDiscard = (what: string, onDiscard: () => void) =>
-  Alert.alert(`Discard this ${what}?`, 'What you typed will be lost.', [
-    { text: 'Keep editing', style: 'cancel' },
-    { text: 'Discard', style: 'destructive', onPress: onDiscard },
-  ]);
+// Themed "discard changes?" popup. Call confirmDiscard('inquiry', onDiscard) and render {popup.node}.
+function useConfirmDiscard() {
+  const popup = usePopup();
+  const confirmDiscard = (what: string, onDiscard: () => void) => popup.show({
+    icon: '✏️',
+    title: `Discard this ${what}?`,
+    body: 'What you typed will be lost.',
+    actions: [
+      { text: 'Keep editing', style: 'secondary' },
+      { text: 'Discard', style: 'danger', onPress: onDiscard },
+    ],
+  });
+  return { popup, confirmDiscard };
+}
 
 function SubmitButton({ label, sending, onPress }: { label: string; sending: boolean; onPress: () => void }) {
   return (
@@ -217,6 +265,7 @@ export function InquiryForm({ office, user, initialTopic, onBack, onSubmit }: {
   const [message, setMessage] = useState('');
   const [errors, setErrors] = useState<{ name?: string; email?: string; message?: string }>({});
   const { sending, run } = useDelayedSubmit();
+  const { popup, confirmDiscard } = useConfirmDiscard();
 
   const submit = () => {
     const next: typeof errors = {};
@@ -257,67 +306,7 @@ export function InquiryForm({ office, user, initialTopic, onBack, onSubmit }: {
       </View>
 
       <PrivacyNote text="Demo only. Your inquiry is saved on this device and is not sent to the office." />
-    </LibPage>
-  );
-}
-
-export function AppointmentForm({ office, user, existing, onBack, onSubmit }: {
-  office: OfficeData; user: User; existing: OfficeRequest[]; onBack: () => void; onSubmit: (r: OfficeRequest) => void;
-}) {
-  const [days] = useState(() => nextWeekdays(5));
-  const times = APPOINTMENT_TIMES.map(fmtTime);
-  const [reason, setReason] = useState(office.topics[0]);
-  const [date, setDate] = useState(days[0]);
-  const [time, setTime] = useState(times[0]);
-  const [email, setEmail] = useState(user.email);
-  const [note, setNote] = useState('');
-  const [errors, setErrors] = useState<{ email?: string; slot?: string }>({});
-  const { sending, run } = useDelayedSubmit();
-
-  const submit = () => {
-    const next: typeof errors = {};
-    if (!EMAIL_REGEX.test(email.trim())) next.email = 'Enter a valid email address.';
-    if (existing.some((r) => r.kind === 'appointment' && r.status === 'submitted' && r.date === date && r.time === time)) {
-      next.slot = 'You already have a request for this day and time. Choose another slot.';
-    }
-    setErrors(next);
-    if (Object.keys(next).length) return;
-    run(() =>
-      onSubmit({
-        id: `${Date.now()}`, ref: makeRef(office.refPrefix), office: office.office, kind: 'appointment', topic: reason,
-        message: note.trim(), name: user.name, email: email.trim(), date, time, status: 'submitted', createdAt: Date.now(),
-      })
-    );
-  };
-
-  return (
-    <LibPage
-      title="Request an appointment"
-      sub={`${office.name} · Sample times`}
-      onBack={() => (note.trim() && !sending ? confirmDiscard('request', onBack) : onBack())}
-      footer={<SubmitButton label={'🗓️  Submit request'} sending={sending} onPress={submit} />}
-    >
-      <View style={s.lbPlanCard}>
-        <Text style={s.lbPlanTitle}>Make a little time to talk.</Text>
-        <Text style={s.lbBody}>Choose a preferred day and time. This is a request, and the office confirms the final schedule.</Text>
-      </View>
-
-      <Text style={s.lbFieldLabel}>What would you like to talk about?</Text>
-      <Select icon="💛" value={reason} options={office.topics} onChange={setReason} />
-
-      <Text style={s.lbFieldLabel}>Preferred date</Text>
-      <Select icon="🗓️" value={date} options={days} onChange={(v) => { setDate(v); setErrors((e) => ({ ...e, slot: undefined })); }} />
-
-      <Text style={s.lbFieldLabel}>Preferred time</Text>
-      <Select icon="🕒" value={time} options={times} onChange={(v) => { setTime(v); setErrors((e) => ({ ...e, slot: undefined })); }} />
-      {!!errors.slot && <Text style={s.fieldErrorText}>{errors.slot}</Text>}
-
-      <View style={{ marginTop: 14 }}>
-        <Field label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" errorText={errors.email} helper="Where the office can reach you about this request." />
-        <Field label="Note (optional)" value={note} onChangeText={setNote} multiline maxLength={300} autoCapitalize="sentences" placeholder="Anything you’d like the office to know first" helper={`${note.length}/300`} />
-      </View>
-
-      <PrivacyNote text="Demo only. Sample times are shown. Your request is saved on this device and is not sent to the office." />
+      {popup.node}
     </LibPage>
   );
 }
@@ -339,11 +328,17 @@ export function RequestSummary({ req, office, campus, onBack, onDone, onCancel }
     ['STATUS', cancelled ? 'Cancelled' : isAppt ? 'Requested · awaiting the office’s confirmation' : 'Submitted · awaiting the office’s reply'],
   ];
 
-  const askCancel = () =>
-    Alert.alert('Cancel this request?', 'The office will no longer see it as active.', [
-      { text: 'Keep request', style: 'cancel' },
-      { text: 'Cancel request', style: 'destructive', onPress: () => onCancel?.() },
-    ]);
+  const popup = usePopup();
+  const askCancel = () => popup.show({
+    iconName: 'calendarCheck', iconBg: C.errorBg,
+    title: 'Cancel this request?',
+    body: 'The office will no longer see it as active.',
+    details: [{ label: 'Reference', value: req.ref }],
+    actions: [
+      { text: 'Keep request', style: 'secondary' },
+      { text: 'Cancel request', style: 'danger', onPress: () => onCancel?.() },
+    ],
+  });
 
   return (
     <LibPage
@@ -379,6 +374,7 @@ export function RequestSummary({ req, office, campus, onBack, onDone, onCancel }
         ))}
       </View>
       <PrivacyNote text="Demo only. This request is saved on this device and has not been sent to the office." />
+      {popup.node}
     </LibPage>
   );
 }

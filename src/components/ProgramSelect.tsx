@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { PROGRAMS, programCode } from '../data';
+import { EmojiIcon } from './ProfileIcon';
 import { s } from '../styles';
 import { C } from '../theme';
 
@@ -20,7 +21,7 @@ export function ProgramSelect({ value, onChange, errorText }: { value: string; o
         accessibilityLabel="Select academic program"
         style={[s.fieldBox, { height: current ? 56 : 48 }, !!errorText && { borderColor: C.error }, open && { borderColor: C.yellow }]}
       >
-        <Text style={s.fieldIcon}>🎓</Text>
+        <View style={{ marginRight: 12 }}><EmojiIcon glyph="🎓" /></View>
         <View style={{ flex: 1 }}>
           {current ? (
             <>

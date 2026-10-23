@@ -37,14 +37,19 @@ const seed = (): AppNotification[] => [
 ];
 
 /* ---------- Tiny shared store so read state survives tab switches ---------- */
-let items: AppNotification[] = seed();
+// Notifications are kept per account, so a brand-new account always starts with an empty list.
+const lists: Record<string, AppNotification[]> = {};
+let activeKey = 'guest';
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
-const set = (next: AppNotification[]) => { items = next; emit(); };
+const getItems = () => (lists[activeKey] ??= []);
+const set = (next: AppNotification[]) => { lists[activeKey] = next; emit(); };
+
+export const setNotifUser = (email?: string | null) => { activeKey = (email ?? '').trim().toLowerCase() || 'guest'; };
 
 export const notifActions = {
-  markRead: (id: string) => set(items.map((n) => (n.id === id && !n.read ? { ...n, read: true } : n))),
-  markAllRead: () => set(items.map((n) => (n.read ? n : { ...n, read: true }))),
+  markRead: (id: string) => set(getItems().map((n) => (n.id === id && !n.read ? { ...n, read: true } : n))),
+  markAllRead: () => set(getItems().map((n) => (n.read ? n : { ...n, read: true }))),
   clearAll: () => set([]),
   restore: () => set(seed()),
 };
@@ -56,6 +61,7 @@ export function useNotifications() {
     listeners.add(l);
     return () => { listeners.delete(l); };
   }, []);
+  const items = getItems();
   return { items, unread: items.filter((n) => !n.read).length };
 }
 

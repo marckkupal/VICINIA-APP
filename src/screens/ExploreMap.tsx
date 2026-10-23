@@ -11,16 +11,17 @@ export const PLACE_FILTERS: { key: PlaceFilter; label: string; icon?: string }[]
   { key: 'study', label: 'Study', icon: '📖' },
   { key: 'food', label: 'Food', icon: '🍴' },
   { key: 'orgs', label: 'Orgs', icon: '👥' },
+  { key: 'shops', label: 'Shops', icon: '🛍️' },
 ];
 
-const KIND_WORDS: Record<PlaceKind, string> = { study: 'study', food: 'food eat', orgs: 'orgs organization community club' };
+const KIND_WORDS: Record<PlaceKind, string> = { study: 'study', food: 'food eat', orgs: 'orgs organization community club', shops: 'shop shops store business services' };
 
 // Shared by the Explore list and the Explore map so both always show the same results.
 export const filterPlaces = (places: Place[], filter: PlaceFilter, query: string) => {
   const tokens = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
   return places.filter((p) => {
     if (filter !== 'all' && p.kind !== filter) return false;
-    const text = `${p.name} ${p.type} ${KIND_WORDS[p.kind]} ${p.status}`.toLowerCase();
+    const text = `${p.name} ${p.type} ${KIND_WORDS[p.kind]} ${p.status} ${p.address ?? ''}`.toLowerCase();
     return tokens.every((t) => text.includes(t));
   });
 };

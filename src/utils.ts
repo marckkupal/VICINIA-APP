@@ -1,5 +1,18 @@
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Gmail only: letters/digits with single '.', '_' or '+' separators (no leading, trailing or doubled ones).
+export const GMAIL_REGEX = /^[a-z0-9]+(?:[._+][a-z0-9]+)*@gmail\.com$/;
 export const norm = (s: string) => s.trim().toLowerCase();
+export const isGmail = (email: string) => GMAIL_REGEX.test(norm(email));
+// School email only: name@tip.edu.ph (letters/digits with single '.', '_', '-' or '+' separators).
+export const SCHOOL_EMAIL_DOMAIN = 'tip.edu.ph';
+export const SCHOOL_EMAIL_REGEX = /^[a-z0-9]+(?:[._+-][a-z0-9]+)*@tip\.edu\.ph$/;
+export const isSchoolEmail = (email: string) => SCHOOL_EMAIL_REGEX.test(norm(email));
+// Names: letters (incl. accented), spaces, hyphens, apostrophes and periods only; at least 2 letters. No digits or symbols.
+export const NAME_REGEX = /^[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ .'’-]*$/;
+export const isValidName = (name: string) => {
+  const n = name.trim();
+  return NAME_REGEX.test(n) && (n.match(/[A-Za-zÀ-ÖØ-öø-ÿ]/g) ?? []).length >= 2;
+};
 export const initials = (name: string) =>
   name.trim().split(/\s+/).filter(Boolean).map((p) => p[0]).slice(0, 2).join('').toUpperCase() || '?';
 export const fmtCount = (n: number) => (n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : String(n));

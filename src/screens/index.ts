@@ -15,8 +15,6 @@ export { BoardsScreen } from './BoardsScreen';
 export { EventsScreen } from './EventsScreen';
 export { ProfileScreen } from './ProfileScreen';
 export { EditProfileScreen } from './EditProfileScreen';
-export { LibraryCatalog } from './LibraryCatalog';
-export { LibraryResource } from './LibraryResource';
 export { LibraryBooking, BookingSummary } from './LibraryBooking';
 export { EventDetails, RegistrationPreview } from './EventDetails';
 export { SavedPlaces } from './SavedPlaces';

@@ -14,11 +14,11 @@ export function WelcomeScreen({ onSignUp, onLogin }: { onSignUp: () => void; onL
       </View>
       <Text style={[s.introTitle, { textAlign: 'left', marginTop: 24, fontSize: 36 }]}>Your campus,{'\n'}closer than ever.</Text>
       <Text style={[s.introBody, { textAlign: 'left', paddingHorizontal: 0 }]}>
-        Find people, places, events, communities, and wellbeing support around TIP Quezon City and Manila.
+        Find people, places, events, communities, and wellbeing support around TIP Quezon City.
       </Text>
       <View style={s.heroCard}>
         <View style={s.heroCircle}><Text style={{ fontSize: 30 }}>📍</Text></View>
-        <View style={s.heroPill}><Text style={s.heroPillText}>🎓 TIP · Quezon City</Text></View>
+        <View style={s.heroPill}><Text style={s.heroPillText}>TIP · Quezon City</Text></View>
       </View>
       <PrimaryButton dark label="Create my account" onPress={onSignUp} />
       <TouchableOpacity onPress={onLogin} style={{ marginTop: 14, alignItems: 'center' }}>

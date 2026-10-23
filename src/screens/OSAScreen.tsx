@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { BackButton } from '../components/BackButton';
+import { OfficeIcon } from '../components/OfficeIcon';
+import { usePopup } from '../components/Popup';
 import {
   AnnouncementRow, ContactCard, InquiryForm, OfficeHero, OfficeInfoCard, RecentRequests, RequestSummary, ServiceDetail, ServiceRow,
 } from '../components/OfficeKit';
@@ -9,6 +11,7 @@ import { useOfficeRequests } from '../requests';
 import { s } from '../styles';
 import { C } from '../theme';
 import type { User } from '../types';
+import type { OfficeIconName } from '../components/OfficeIcon';
 import { campusLabel } from '../utils';
 
 type V = { k: 'service'; key: string } | { k: 'form'; topic?: string } | { k: 'done'; id: string };
@@ -17,6 +20,7 @@ type V = { k: 'service'; key: string } | { k: 'form'; topic?: string } | { k: 'd
 export function OSAScreen({ user, onBack, onOpenEvent }: { user: User; onBack: () => void; onOpenEvent: (eventId: string) => void }) {
   const [stack, setStack] = useState<V[]>([]);
   const { items, add } = useOfficeRequests(user, 'osa');
+  const popup = usePopup();
   const view = stack[stack.length - 1];
   const push = (v: V) => setStack((st) => [...st, v]);
   const back = () => setStack((st) => st.slice(0, -1));
@@ -48,38 +52,80 @@ export function OSAScreen({ user, onBack, onOpenEvent }: { user: User; onBack: (
   }
 
   const announcements = EVENTS.filter((e) => OSA.announcementIds.includes(e.id));
+  const rows = OSA.services.filter((x) => x.key === 'orgs' || x.key === 'scholar');
+  const tiles = OSA.services.filter((x) => x.key === 'events' || x.key === 'requests');
+
+  const visitDesk = () => popup.show({
+    iconName: 'pin', iconBg: '#E3F0E4',
+    title: 'Visit the OSA help desk',
+    body: 'Drop by during office hours for forms, permits and questions about student activities.',
+    details: OSA.info.filter((i) => i.key !== 'contact').map((i) => ({ label: i.label.toLowerCase(), value: i.value })),
+    actions: [
+      { text: 'Send an inquiry instead', onPress: () => push({ k: 'form' }) },
+      { text: 'Got it', style: 'secondary' },
+    ],
+  });
+  const openContact = () => popup.show({
+    iconName: 'message', iconBg: '#E6EDFB',
+    title: 'Contact Student Affairs',
+    body: 'How would you like to reach the office?',
+    actions: [
+      { text: 'Send an inquiry', onPress: () => push({ k: 'form' }) },
+      { text: 'Visit the help desk', style: 'secondary', onPress: visitDesk },
+      { text: 'Cancel', style: 'secondary' },
+    ],
+  });
 
   return (
-    <ScrollView style={s.screen} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+    <View style={s.screen}>
       <View style={s.libHeader}>
         <BackButton onPress={onBack} />
         <View style={{ flex: 1, marginLeft: 14 }}>
-          <Text style={s.libTitle}>OSA</Text>
-          <Text style={s.libSub}>Office of Student Affairs</Text>
+          <Text style={s.libTitle}>{OSA.short}</Text>
+          <Text style={s.libSub}>{OSA.tagline}</Text>
         </View>
-        <Text style={{ fontSize: 22, marginLeft: 12 }}>🎓</Text>
       </View>
+      <ScrollView style={s.fill} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <OfficeHero office={OSA} />
+        <OfficeInfoCard office={OSA} />
 
-      <OfficeHero office={OSA} />
-      <OfficeInfoCard office={OSA} />
+        <View style={s.rowBetween}>
+          <Text style={[s.sectionTitle, { fontSize: 20 }]}>Student services</Text>
+          <Text style={{ fontSize: 14, fontWeight: '800', color: C.green }}>How can we help?</Text>
+        </View>
+        {rows.map((svc) => <ServiceRow key={svc.key} svc={svc} onPress={() => push({ k: 'service', key: svc.key })} />)}
+        <View style={[s.rowCenter, { marginBottom: 16 }]}>
+          {tiles.map((svc, idx) => (
+            <TouchableOpacity
+              key={svc.key}
+              style={[s.osaTile, idx < tiles.length - 1 && { marginRight: 10 }]}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={`${svc.title}: ${svc.sub}`}
+              onPress={() => push({ k: 'service', key: svc.key })}
+            >
+              <View style={{ marginRight: 10 }}><OfficeIcon name={svc.icon as OfficeIconName} size={20} color={C.green} /></View>
+              <View style={{ flex: 1 }}>
+                <Text style={s.osaTileTitle} numberOfLines={1}>{svc.title}</Text>
+                <Text style={s.osaTileSub} numberOfLines={1}>{svc.sub}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
 
-      <View style={s.rowBetween}>
-        <Text style={[s.sectionTitle, { fontSize: 20 }]}>Student services</Text>
-        <Text style={{ fontSize: 14, fontWeight: '800', color: C.green }}>{OSA.services.length} services</Text>
-      </View>
-      {OSA.services.map((svc) => <ServiceRow key={svc.key} svc={svc} onPress={() => push({ k: 'service', key: svc.key })} />)}
+        <View style={[s.rowBetween, { marginTop: 8 }]}>
+          <Text style={[s.sectionTitle, { fontSize: 20 }]}>Announcements</Text>
+          <Text style={{ fontSize: 14, fontWeight: '800', color: C.muted }}>Upcoming</Text>
+        </View>
+        {announcements.map((e) => <AnnouncementRow key={e.id} event={e} onPress={() => onOpenEvent(e.id)} />)}
+        {announcements.length === 0 && <Text style={[s.muted, { fontSize: 13, marginBottom: 14 }]}>No announcements right now. Check back soon.</Text>}
 
-      <View style={[s.rowBetween, { marginTop: 8 }]}>
-        <Text style={[s.sectionTitle, { fontSize: 20 }]}>Announcements</Text>
-        <Text style={{ fontSize: 14, fontWeight: '800', color: C.muted }}>Upcoming</Text>
-      </View>
-      {announcements.map((e) => <AnnouncementRow key={e.id} event={e} onPress={() => onOpenEvent(e.id)} />)}
-      {announcements.length === 0 && <Text style={[s.muted, { fontSize: 13, marginBottom: 14 }]}>No announcements right now. Check back soon.</Text>}
+        <ContactCard title="Contact Student Affairs" sub="Send an inquiry or visit the OSA help desk" onPress={openContact} />
 
-      <ContactCard title="Contact the office" sub="Send an inquiry to Student Affairs" onPress={() => push({ k: 'form' })} />
-
-      <RecentRequests items={items} onOpen={(id) => push({ k: 'done', id })} />
-      <View style={{ height: 24 }} />
-    </ScrollView>
+        <RecentRequests items={items} onOpen={(id) => push({ k: 'done', id })} />
+        {popup.node}
+        <View style={{ height: 24 }} />
+      </ScrollView>
+    </View>
   );
 }

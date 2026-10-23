@@ -1,4 +1,7 @@
-export interface BoardPost { id: string; author: string; ago: string; text: string; votes: number; replies: number }
+export interface BoardPost {
+  id: string; author: string; ago: string; text: string; votes: number; replies: number;
+  title?: string; flair?: string; link?: string; alerts?: boolean; media?: { uri: string; type: 'photo' | 'video' }[]; // set by the Create post screen
+}
 export interface BoardMember { name: string; role: 'Admin' | 'Moderator' | 'Member' }
 export interface BoardDetailData {
   description: string; posts: number; showTitle: boolean; joinLabel?: string;
@@ -40,14 +43,15 @@ export const BOARD_DETAILS: Record<string, BoardDetailData> = {
     ],
   },
   '6': {
-    description: 'For TIP shutterbugs! Photo walks around Cubao, gear talk, and friendly critique.', posts: 96, showTitle: true,
+    description: 'Shots, gear talk, photo walks, and constructive critique.', posts: 96, showTitle: false,
     members: [
       { name: 'Mika Reyes', role: 'Admin' }, { name: 'Alex Santos', role: 'Moderator' },
       { name: 'Lia Cruz', role: 'Member' }, { name: 'Paolo Navarro', role: 'Member' }, { name: 'Jenny Aquino', role: 'Member' },
     ],
     feed: [
       { id: 'a', author: 'Mika Reyes', ago: '2h ago', text: 'Film walk this Saturday? Cubao Expo → Araneta City around golden hour. Beginners welcome!', votes: 24, replies: 8 },
-      { id: 'b', author: 'Lia Cruz', ago: '5h ago', text: 'Any tips for affordable 35mm developing around Cubao? Budget is around ₱350.', votes: 16, replies: 19 },
+      { id: 'a2', author: 'Alex Santos', ago: '1 hr ago', text: 'Scanned my first roll of Portra 400! Sharing my favorite frame from last week\u2019s street session.', votes: 51, replies: 12 },
+      { id: 'b', author: 'Lia Cruz', ago: '3 hr ago', text: 'Any recommendations for affordable 35mm developing around Cubao? Budget is around ₱350.', votes: 16, replies: 19 },
     ],
   },
   '3': {

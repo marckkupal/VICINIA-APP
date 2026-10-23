@@ -9,14 +9,14 @@ export const POSTS: Post[] = [
 ];
 
 export const BOARDS: Board[] = [
-  { id: '1', name: 'Anime Club', members: 340, emoji: '🎌' },
-  { id: '2', name: 'Gaming Club', members: 512, emoji: '🎮' },
-  { id: '3', name: 'Tech Club', members: 684, emoji: '💻' },
-  { id: '4', name: 'Sports Club', members: 428, emoji: '🏀' },
-  { id: '5', name: 'Music Club', members: 276, emoji: '🎧' },
-  { id: '6', name: 'Photography Club', members: 215, emoji: '📷' },
-  { id: '7', name: 'Academics Hub', members: 1200, emoji: '📚' },
-  { id: '8', name: 'Campus Events', members: 1500, emoji: '🎪' },
+  { id: '1', name: 'Anime Club', label: 'Anime', tagline: 'Talk, recs & watch parties', tint: '#F8E9E5', online: 24, newPosts: 31, members: 340, emoji: '🎌' },
+  { id: '2', name: 'Gaming Club', label: 'Gaming', tagline: 'Co-op, esports & tabletop', tint: '#EDE8F6', online: 61, newPosts: 38, members: 512, emoji: '🎮' },
+  { id: '3', name: 'Tech Club', label: 'Technology', tagline: 'Build nights & career tips', tint: '#E4F1EA', online: 47, newPosts: 40, members: 684, emoji: '💻' },
+  { id: '4', name: 'Sports Club', label: 'Sports', tagline: 'Varsity, pickup & fitness', tint: '#E8F3EA', online: 33, newPosts: 27, members: 428, emoji: '🏀' },
+  { id: '5', name: 'Music Club', label: 'Music', tagline: 'Gigs, playlists & jam sessions', tint: '#E6EBFB', online: 19, newPosts: 19, members: 276, emoji: '🎧' },
+  { id: '6', name: 'Photography Club', label: 'Photography', tagline: 'Shoots, gear & photo walks', tint: '#FDF1C4', online: 38, newPosts: 42, members: 215, emoji: '📷' },
+  { id: '7', name: 'Academics Hub', label: 'Academics', tagline: 'Study groups & class help', tint: '#FFF8E1', online: 72, newPosts: 36, members: 1200, emoji: '📚' },
+  { id: '8', name: 'Campus Events', label: 'Campus Events', tagline: 'What\u2019s happening this week', tint: '#F5EAE6', online: 85, newPosts: 33, members: 1500, emoji: '🎪' },
 ];
 
 export const QUICK = [
@@ -27,7 +27,7 @@ export const QUICK = [
 ];
 
 export const SLIDES = [
-  { icon: '🗺️', kicker: 'EXPLORE NEARBY', title: 'Good spots.\nJust around you.', body: 'Find your next café, food stop or study space around TIP Quezon City and Manila.' },
+  { icon: '🗺️', kicker: 'EXPLORE NEARBY', title: 'Good spots.\nJust around you.', body: 'Find your next café, food stop or study space on and right around the TIP Quezon City campus.' },
   { icon: '🎮', kicker: 'CAMPUS BOARDS', title: 'Your interests.\nYour people.', body: 'Into photography, gaming, music or academics? Join a board and start a conversation.' },
   { icon: '🗓️', kicker: 'CAMPUS EVENTS & WELLBEING', title: 'Be part of it.\nFeel supported.', body: 'Discover campus activities and find caring support from the Guidance Office or Clinic, whenever you need it.' },
 ];
@@ -40,14 +40,14 @@ export const LIBRARY = {
   name: 'Main Library',
   blurb: 'Find quiet study zones, collaborative rooms, print resources, and online journals for every program.',
   info: [
-    { key: 'hours', label: 'OPENING HOURS', value: 'Mon–Fri · 7:00 AM–8:00 PM', icon: '🕒', bg: '#FDF1C4' },
-    { key: 'location', label: 'LOCATION', value: 'PE Center, 2nd–4th Floors', icon: '📍', bg: '#FADFD6' },
-    { key: 'contact', label: 'CONTACT', value: 'library.qc@tip.edu.ph · local 225', icon: '✉️', bg: '#E6EDFB' },
+    { key: 'hours', label: 'OPENING HOURS', value: 'Mon–Fri · 7:00 AM–8:00 PM', icon: 'clock', bg: '#FDF1C4' },
+    { key: 'location', label: 'LOCATION', value: 'PE Center, 2nd–4th Floors', icon: 'pin', bg: '#F8E6E1' },
+    { key: 'contact', label: 'CONTACT', value: 'library.qc@tip.edu.ph · local 225', icon: 'mail', bg: '#E6EDFB' },
   ],
   email: 'library.qc@tip.edu.ph',
   plan: [
-    { key: 'book', title: 'Book a study room', sub: 'Reserve a group room for up to 2 hours', icon: '🗓️', bg: '#FDF1C4' },
-    { key: 'spaces', title: 'Explore study spaces', sub: 'Quiet, group, computer, and reading zones', icon: '🛋️', bg: '#E3F0E4' },
+    { key: 'book', title: 'Book a study room', sub: 'Reserve a group room for up to 2 hours', icon: 'calendarPlus', bg: '#FDF1C4' },
+    { key: 'spaces', title: 'Explore study spaces', sub: 'Quiet, group, computer, and reading zones', icon: 'armchair', bg: '#E3F0E4' },
   ],
 };
 
@@ -55,24 +55,26 @@ export const CLINIC = {
   name: 'Care on campus',
   blurb: 'First aid, health assessment, and basic medical care are available to enrolled TIP students and staff.',
   info: [
-    { key: 'hours', label: 'CLINIC HOURS', value: 'Mon–Fri · 7:00 AM–6:00 PM', icon: '🕒', bg: '#FDF1C4' },
-    { key: 'location', label: 'LOCATION', value: 'Tech Building, Ground Floor', icon: '📍', bg: '#FDF1C4' },
-    { key: 'contact', label: 'CONTACT', value: '(02) 8911 0964 · local 126', icon: '📞', bg: '#E6EDFB' },
+    { key: 'hours', label: 'CLINIC HOURS', value: 'Mon–Fri · 7:00 AM–6:00 PM', icon: 'clock', bg: '#F8E6E1' },
+    { key: 'location', label: 'LOCATION', value: 'Tech Building, Ground Floor', icon: 'pin', bg: '#FDF1C4' },
+    { key: 'contact', label: 'CONTACT', value: '(02) 8911 0964 · local 126', icon: 'phone', bg: '#E6EDFB' },
   ],
   phone: '0289110964',
   emergencyNote: 'Notify Campus Security immediately after.',
   services: [
-    { key: 'consult', label: 'Consultation', icon: '🩺' },
-    { key: 'firstaid', label: 'First aid', icon: '🩹' },
-    { key: 'certs', label: 'Certificates', icon: '📄' },
+    { key: 'consult', label: 'Consultation', icon: 'stethoscope' },
+    { key: 'firstaid', label: 'First aid', icon: 'bandage' },
+    { key: 'certs', label: 'Certificates', icon: 'fileHeart' },
   ],
 };
 
-export type PlaceKind = 'study' | 'food' | 'orgs';
+export type PlaceKind = 'study' | 'food' | 'orgs' | 'shops';
 export interface Place {
   id: string; name: string; kind: PlaceKind; type: string; price?: string;
   distance: string; status: string; emoji: string;
   map?: { x: number; y: number }; // illustrative position on the Explore map, in % (not GPS)
+  // Set for places posted by business owners (see businesses.ts).
+  business?: boolean; address?: string; hours?: string; contact?: string; about?: string; ownerEmail?: string;
 }
 export const PLACES: Place[] = [
   { id: '1', name: 'Brew & Books Cafe', kind: 'food', type: 'Cafe', price: '₱120–250', distance: '0.3 km', status: 'Open now', emoji: '☕', map: { x: 27, y: 58 } },
@@ -119,6 +121,7 @@ export interface CampusEvent {
   id: string; kind: string; fee: number; title: string; icon: string; bg: string;
   mon: string; day: string; dateLong: string; dateShort: string; time: string;
   venue: string; campus: string; about: string;
+  host?: 'guidance'; // set when the event is organized by that office
 }
 const GENERIC_ABOUT = 'More details for this campus event will be shared by the organizer.';
 // Sample events for the demo.
@@ -148,7 +151,17 @@ export const EVENTS: CampusEvent[] = [
   {
     id: 'wellness', kind: 'WELLNESS', fee: 0, title: 'Wellness Day', icon: '🌿', bg: '#E3F0E4',
     mon: 'NOV', day: '12', dateLong: 'Thursday, November 12, 2026', dateShort: 'November 12, 2026', time: '9:00 AM',
-    venue: 'Clinic & Guidance Office', campus: 'TIP Quezon City', about: GENERIC_ABOUT,
+    venue: 'Clinic & Guidance Office', campus: 'TIP Quezon City', about: GENERIC_ABOUT, host: 'guidance',
+  },
+  {
+    id: 'stress', kind: 'WELLNESS', fee: 0, title: 'Stress Management Workshop', icon: '🧘', bg: '#E3F0E4',
+    mon: 'NOV', day: '19', dateLong: 'Thursday, November 19, 2026', dateShort: 'November 19, 2026', time: '1:00 PM',
+    venue: 'Guidance Office', campus: 'TIP Quezon City', about: GENERIC_ABOUT, host: 'guidance',
+  },
+  {
+    id: 'orient', kind: 'WELLNESS', fee: 0, title: 'Freshman Adjustment Session', icon: '🌱', bg: '#FDF1C4',
+    mon: 'DEC', day: '03', dateLong: 'Thursday, December 3, 2026', dateShort: 'December 3, 2026', time: '10:00 AM',
+    venue: 'Guidance Office', campus: 'TIP Quezon City', about: GENERIC_ABOUT, host: 'guidance',
   },
 ];
 
@@ -168,7 +181,15 @@ export const programCode = (v: string) => {
   return hit?.code ?? v;
 };
 
-export const YEARS = ['1st year', '2nd year', '3rd year', '4th year'] as const;
+export const YEARS = ['1st year', '2nd year', '3rd year', '4th year', '5th year', 'Irregular'] as const;
+
+// Explore Nearby only covers the TIP Quezon City campus and its immediate surroundings.
+export const EXPLORE_SCOPE = { campus: 'TIP Quezon City', maxDistanceKm: 1 } as const;
+// Places without a listed distance (e.g. posted by a business owner) are kept.
+export const inExploreScope = (distance?: string) => {
+  const km = parseFloat(distance ?? '');
+  return Number.isNaN(km) || km <= EXPLORE_SCOPE.maxDistanceKm;
+};
 
 /* ---------- OSA and Guidance ----------
    Sample content for the prototype. Hours, rooms, phone numbers and processes are intentionally
@@ -182,75 +203,64 @@ export interface OfficeService {
 export interface OfficeInfoRow { key: string; label: string; value: string; icon: string; bg: string }
 export interface OfficeData {
   office: 'osa' | 'guidance'; name: string; short: string; refPrefix: string; blurb: string; heroBg: string; heroIcon: string;
+  heroTitle?: string; tagline: string; // headline inside the hero card; subtitle under the page title
   info: OfficeInfoRow[]; topics: string[]; services: OfficeService[]; announcementIds: string[];
+  appointmentSteps?: { title: string; body: string }[]; // simple how-to shown instead of a booking form
 }
 
 export const OSA: OfficeData = {
-  office: 'osa', name: 'Office of Student Affairs', short: 'OSA', refPrefix: 'OSA', heroBg: '#E6EDFB', heroIcon: '🎓',
-  blurb: 'Support for student life: organizations, campus activities, and student concerns. Ask a question or send an inquiry from here.',
+  office: 'osa', name: 'Office of Student Affairs', short: 'OSA', refPrefix: 'OSA', heroBg: '#E6EDFB', heroIcon: 'users',
+  heroTitle: 'Your campus life starts here', tagline: 'Office of Student Affairs',
+  blurb: 'Get support for student activities, organizations, leadership, scholarships, and campus participation.',
   info: [
-    { key: 'hours', label: 'OFFICE HOURS', value: 'Not listed in this prototype', icon: '🕒', bg: '#FDF1C4' },
-    { key: 'location', label: 'LOCATION', value: 'TIP Quezon City campus', icon: '📍', bg: '#E3F0E4' },
-    { key: 'contact', label: 'CONTACT', value: 'Send an inquiry in the app', icon: '✉️', bg: '#E6EDFB' },
+    { key: 'hours', label: 'OFFICE HOURS', value: 'Mon–Fri · 8:00 AM–5:00 PM', icon: 'clock', bg: '#E6EDFB' },
+    { key: 'location', label: 'LOCATION', value: 'Administration Building, 2nd Floor', icon: 'pin', bg: '#FDF1C4' },
+    { key: 'contact', label: 'CONTACT', value: 'osa.qc@tip.edu.ph · local 221', icon: 'mail', bg: '#E3F0E4' },
   ],
-  topics: ['Student organizations', 'Campus events', 'Student concern or feedback', 'General inquiry'],
+  topics: ['Student organizations', 'Scholarships & assistance', 'Campus events', 'Forms & permits', 'Student concern or feedback', 'General inquiry'],
   announcementIds: ['semicon', 'midterms'],
   services: [
     {
-      key: 'orgs', title: 'Student organizations', sub: 'Joining or running a campus group', icon: '👥', bg: '#E6EDFB', action: 'inquiry', topic: 'Student organizations',
-      about: 'Ask the office about student organizations on campus. You can also browse campus clubs on the Boards tab.',
+      key: 'orgs', title: 'Student organizations', sub: 'Browse groups, activities, and accreditation', icon: 'users', bg: '#E6EDFB', action: 'inquiry', topic: 'Student organizations',
+      about: 'Ask the office about student organizations on campus, including activities and accreditation. You can also browse campus clubs on the Boards tab.',
       include: ['The organization you are asking about', 'Your program and year level', 'Your question or request'],
     },
     {
-      key: 'events', title: 'Campus events & activities', sub: 'Questions about events and participation', icon: '🎪', bg: '#FDF1C4', action: 'inquiry', topic: 'Campus events',
+      key: 'scholar', title: 'Scholarships & assistance', sub: 'View aid programs and application guidance', icon: 'dollar', bg: '#FDF1C4', action: 'inquiry', topic: 'Scholarships & assistance',
+      about: 'Ask which aid programs are available and how to apply. The office can point you to requirements and schedules.',
+      include: ['The program you are interested in', 'Your program and year level', 'Any deadlines you are aware of'],
+    },
+    {
+      key: 'events', title: 'Events', sub: 'Campus calendar', icon: 'calendar', bg: '#E3F0E4', action: 'inquiry', topic: 'Campus events',
       about: 'Ask about campus activities, venues, or how to take part. Upcoming events are listed under Announcements and on the Events tab.',
       include: ['The event or activity name', 'The date, if you know it', 'What you would like to find out'],
     },
     {
-      key: 'concerns', title: 'Student concerns & feedback', sub: 'Share a concern or a suggestion', icon: '💬', bg: '#F8E7E2', action: 'inquiry', topic: 'Student concern or feedback',
-      about: 'Share a concern or a suggestion about student life. Clear details help the office understand and follow up.',
-      include: ['What happened, or what you suggest', 'Where and when it happened', 'How you would like to be reached'],
-    },
-    {
-      key: 'general', title: 'General inquiry', sub: 'Not sure where to ask? Start here', icon: '❔', bg: '#E3F0E4', action: 'inquiry', topic: 'General inquiry',
-      about: 'If your question does not fit another service, send it here and describe what you need.',
-      include: ['A short description of your question', 'Anything that gives context, such as your program or year'],
+      key: 'requests', title: 'Requests', sub: 'Forms & permits', icon: 'clipboardCheck', bg: '#E3F0E4', action: 'inquiry', topic: 'Forms & permits',
+      about: 'Ask about forms and permits for student activities, such as event approvals and facility use.',
+      include: ['The form or permit you need', 'The activity and date it is for', 'Your organization, if any'],
     },
   ],
 };
 
 export const GUIDANCE: OfficeData = {
-  office: 'guidance', name: 'Guidance Office', short: 'Guidance', refPrefix: 'GUI', heroBg: '#E8F2EA', heroIcon: '💛',
-  blurb: 'A caring place to talk. Request an appointment or send a private inquiry to the Guidance Office.',
+  office: 'guidance', name: 'Guidance Office', short: 'Guidance', refPrefix: 'GUI', heroBg: '#F7C84B', heroIcon: 'heart',
+  heroTitle: 'You don’t have to figure it out alone.', tagline: 'Confidential support from people who care',
+  blurb: 'Sessions are private, free for enrolled TIP students, and available online or in person.',
   info: [
-    { key: 'hours', label: 'OFFICE HOURS', value: 'Not listed in this prototype', icon: '🕒', bg: '#FDF1C4' },
-    { key: 'location', label: 'LOCATION', value: 'Clinic & Guidance Office', icon: '📍', bg: '#E3F0E4' },
-    { key: 'contact', label: 'CONTACT', value: 'Request or inquire in the app', icon: '✉️', bg: '#E6EDFB' },
+    { key: 'hours', label: 'OFFICE HOURS', value: 'Not listed in this prototype', icon: 'clock', bg: '#FDF1C4' },
+    { key: 'location', label: 'LOCATION', value: 'Building 6 - 6th Floor', icon: 'pin', bg: '#E3F0E4' },
+    { key: 'contact', label: 'CONTACT', value: 'Request or inquire in the app', icon: 'mail', bg: '#E6EDFB' },
   ],
   topics: ['Personal or emotional concern', 'Academic stress or workload', 'Relationships or family', 'Adjusting to campus life', 'Not sure yet'],
-  announcementIds: ['wellness'],
-  services: [
-    {
-      key: 'appointment', title: 'Request an appointment', sub: 'Choose a preferred day and time', icon: '🗓️', bg: '#E8F2EA', action: 'appointment',
-      about: 'Ask for a time to talk with the Guidance Office. The times shown are sample slots, and the office confirms the final schedule.',
-      include: ['A preferred day and time', 'What you would like to talk about', 'An email where the office can reach you'],
-    },
-    {
-      key: 'inquiry', title: 'Ask the Guidance Office', sub: 'Send a private question', icon: '💌', bg: '#FDF1C4', action: 'inquiry', topic: 'Not sure yet',
-      about: 'Not ready to book a time? Send a private question and say what kind of support you are looking for.',
-      include: ['What you would like to ask', 'Anything you want the office to know first'],
-    },
-    {
-      key: 'wellness', title: 'Wellness Day', sub: 'Nov 12 · Clinic & Guidance Office', icon: '🌿', bg: '#E3F0E4', action: 'event', eventId: 'wellness',
-      about: 'A campus wellbeing event hosted at the Clinic & Guidance Office. Open the event for the date, time and venue.',
-      include: [],
-    },
-    {
-      key: 'urgent', title: 'When to get urgent help', sub: 'For emergencies and safety', icon: '🚨', bg: '#F8E7E2', action: 'info',
-      about: 'If you or someone near you is in immediate danger, call 911 or tell campus staff right away. For concerns that are not emergencies, you can request an appointment or send an inquiry here.',
-      include: [],
-    },
+  announcementIds: ['wellness', 'stress', 'orient'], // events organized by the Guidance Office (see EVENTS host)
+  // Sample steps for the prototype. Confirm the real process with the office before shipping.
+  appointmentSteps: [
+    { title: 'Visit the office', body: 'Drop by the Guidance Office (Building 6 - 6th Floor) during office hours. Bring your student ID.' },
+    { title: 'Tell the staff', body: 'Say you would like to set an appointment. You do not need to explain everything. A short reason is enough.' },
+    { title: 'Pick a time', body: 'The staff will check the counselor’s schedule and agree on a day and time with you.' },
+    { title: 'Show up', body: 'Arrive a few minutes early. Sessions are private. If you cannot make it, tell the office so the slot can be reused.' },
   ],
+  services: [],
 };
 
-export const APPOINTMENT_TIMES = [9 * 60, 10 * 60, 11 * 60, 13 * 60, 14 * 60, 15 * 60]; // sample slots, minutes from midnight

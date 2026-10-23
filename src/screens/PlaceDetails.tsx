@@ -20,6 +20,7 @@ const ABOUT: Record<string, string> = {
   food: 'A food stop around campus, shown in your nearby places. Check the venue directly for current seating and menu availability.',
   study: 'A study spot around campus, shown in your nearby places. Check the venue directly for current seating and hours.',
   orgs: 'A campus community space, shown in your nearby places. Check with the organization for meeting schedules.',
+  shops: 'A local business posted by its owner. Details come from the owner; confirm hours and prices with the business directly.',
 };
 
 export function PlaceDetails({ place, saved, onToggleSave, onBack, onDirections, backLabel = 'Back to Explore' }: {
@@ -56,19 +57,30 @@ export function PlaceDetails({ place, saved, onToggleSave, onBack, onDirections,
 
       <View style={{ flexDirection: 'row', marginBottom: 14 }}>
         <View style={[s.lbChip, s.lbChipOn]}><Text style={[s.lbChipText, s.lbChipTextOn]}>{place.type}</Text></View>
-        <View style={s.lbChip}><Text style={s.lbChipText}>{place.distance} away</Text></View>
+        {!place.business && <View style={s.lbChip}><Text style={s.lbChipText}>{place.distance} away</Text></View>}
+        {place.business && <View style={s.lbChip}><Text style={s.lbChipText}>Posted by owner</Text></View>}
       </View>
 
       <View style={[s.evFee, { marginTop: 0 }]}>
         {!!place.price && <Text style={s.evFeeTitle}>{place.price} per person</Text>}
         <Text style={{ fontSize: 13, fontWeight: '800', color: C.green, marginBottom: 8 }}>{place.status}</Text>
-        <Text style={s.lbCardMeta}>Status from the existing Explore listing, not a live wait estimate.</Text>
+        <Text style={s.lbCardMeta}>{place.business ? 'Posted by the business owner, not verified by Vicinia.' : 'Status from the existing Explore listing, not a live wait estimate.'}</Text>
       </View>
+
+      {place.business && (
+        <View style={[s.lbInfoCard, { marginTop: 0 }]}>
+          {!!place.address && (<><Text style={s.lbLabel}>LOCATION</Text><Text style={s.lbValue}>{place.address}</Text></>)}
+          {!!place.hours && (<><Text style={s.lbLabel}>HOURS</Text><Text style={s.lbValue}>{place.hours}</Text></>)}
+          {!!place.contact && (<><Text style={s.lbLabel}>CONTACT</Text><Text style={s.lbValue}>{place.contact}</Text></>)}
+          {!!place.about && (<><Text style={s.lbLabel}>ABOUT</Text><Text style={[s.lbBody, { marginBottom: 0 }]}>{place.about}</Text></>)}
+        </View>
+      )}
 
       <Text style={[s.lbH2, { marginTop: 4 }]}>Before you visit</Text>
       <Text style={{ fontSize: 14, color: C.dark, lineHeight: 21, marginBottom: 14 }}>{ABOUT[place.kind]}</Text>
 
-      <Note text="Address and opening hours aren’t available in this prototype. No live booking, queue or directions are provided." />
+      {!place.business && <Note text="Address and opening hours aren’t available in this prototype. No live booking, queue or directions are provided." />}
+      {place.business && <Note text="Business listings are written by their owners and are not checked by Vicinia or the school. Meet in public places and use your judgment." />}
     </LibPage>
   );
 }

@@ -1,6 +1,7 @@
 import { Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle, Path, Polygon, Rect } from 'react-native-svg';
 import { C } from '../theme';
+import { useTabRequests } from '../navigation';
 import type { TabKey } from '../types';
 
 const ACTIVE = '#FFC107';
@@ -58,6 +59,7 @@ const TABS: { key: TabKey; label: string }[] = [
 ];
 
 export function TabBar({ tab, onChange }: { tab: TabKey; onChange: (t: TabKey) => void }) {
+  useTabRequests(onChange); // screens can switch tabs through goToTab()
   return (
     <View style={{ flexDirection: 'row', backgroundColor: C.dark, paddingTop: 14, paddingBottom: 22, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
       {TABS.map((t) => {

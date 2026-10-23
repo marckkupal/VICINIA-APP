@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { EmojiIcon, ProfileIcon } from './ProfileIcon';
 import { s } from '../styles';
 import { C } from '../theme';
 
@@ -9,9 +10,9 @@ export function Select({ icon, value, options, onChange }: { icon: string; value
   return (
     <View>
       <TouchableOpacity style={s.lbSelect} activeOpacity={0.8} onPress={() => setOpen(!open)}>
-        <Text style={s.fieldIcon}>{icon}</Text>
+        <View style={{ marginRight: 12 }}><EmojiIcon glyph={icon} /></View>
         <Text style={s.lbSelectText}>{value}</Text>
-        <Text style={{ color: C.muted, fontSize: 12 }}>{open ? '▴' : '▾'}</Text>
+        <ProfileIcon name={open ? 'chevronUp' : 'chevronDown'} size={18} color={C.muted} />
       </TouchableOpacity>
       {open && (
         <View style={s.lbOptions}>

@@ -14,8 +14,13 @@ export interface Post {
   id: string; name: string; ini: string; handle: string; avatarBg: string;
   tag: string; title: string; tint: string;
   likes: number; comments: number; live?: boolean;
+  media?: string[];
 }
-export interface Board { id: string; name: string; members: number; emoji: string }
+export interface Board {
+  id: string; name: string; members: number; emoji: string;
+  // Used by the Boards screens (optional so other screens don't need them)
+  label?: string; tagline?: string; tint?: string; online?: number; newPosts?: number;
+}
 
 // OSA / Guidance requests (inquiries and appointment requests) saved on this device.
 export type OfficeKey = 'osa' | 'guidance';

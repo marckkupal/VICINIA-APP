@@ -1,11 +1,5 @@
 import { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Alert, StyleSheet } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { Avatar } from '../components/Avatar';
 import { BackButton } from '../components/BackButton';
@@ -16,6 +10,7 @@ import { YearSelect } from '../components/YearSelect';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { PrivacyNote } from '../components/PrivacyNote';
 import { s } from '../styles';
+import { C } from '../theme';
 import type { User } from '../types';
 import { EMAIL_REGEX, campusLabel, norm } from '../utils';
 
@@ -82,15 +77,15 @@ export function EditProfileScreen({ user, onSave, onClose }: { user: User; onSav
 
   return (
     <View style={s.fill}>
-      <ScrollView contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
-        <View style={s.rowBetween}>
-          <View style={s.rowCenter}>
-            <BackButton onPress={requestClose} />
-            <Text style={[s.header, { marginBottom: 0, marginLeft: 10, fontSize: 18 }]}>Edit Profile</Text>
-          </View>
-          <TouchableOpacity onPress={requestClose}><Text style={{ fontWeight: '700' }}>Cancel</Text></TouchableOpacity>
+      <View style={[s.rowBetween, styles.header]}>
+        <View style={s.rowCenter}>
+          <BackButton onPress={requestClose} />
+          <Text style={[s.header, { marginBottom: 0, marginLeft: 10, fontSize: 18 }]}>Edit Profile</Text>
         </View>
-        <View style={[s.darkCard, { marginTop: 16, marginBottom: 20 }]}>
+        <TouchableOpacity onPress={requestClose}><Text style={{ fontWeight: '700' }}>Cancel</Text></TouchableOpacity>
+      </View>
+      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        <View style={[s.darkCard, { marginTop: 4, marginBottom: 20 }]}>
           <TouchableOpacity onPress={changePhoto} activeOpacity={0.8}>
             <Avatar user={draft} size={72} />
             <View style={s.cameraBadge}><Text style={{ fontSize: 10 }}>📷</Text></View>
@@ -115,3 +110,9 @@ export function EditProfileScreen({ user, onSave, onClose }: { user: User; onSav
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  // Pinned above the scrolling form.
+  header: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 12, backgroundColor: C.cream },
+  scrollContent: { paddingHorizontal: 20, paddingBottom: 20 },
+});

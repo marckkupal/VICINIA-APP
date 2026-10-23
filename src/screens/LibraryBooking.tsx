@@ -4,6 +4,7 @@ import { LibPage } from '../components/LibPage';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { PrivacyNote } from '../components/PrivacyNote';
 import { Select } from '../components/Select';
+import { usePopup } from '../components/Popup';
 import { s } from '../styles';
 import { C } from '../theme';
 
@@ -44,6 +45,21 @@ export function LibraryBooking({ onBack, onConfirm }: { onBack: () => void; onCo
   const [date, setDate] = useState(days[0]);
   const [startMin, setStartMin] = useState(14 * 60);
   const [durationMin, setDurationMin] = useState(60);
+  const popup = usePopup();
+  const confirm = () => popup.show({
+    icon: '🗓️',
+    title: 'Confirm this booking?',
+    body: 'Demo only. Nothing is actually reserved, but you will see your booking summary next.',
+    details: [
+      { label: 'Room', value: room },
+      { label: 'Date', value: date },
+      { label: 'Time', value: `${fmtRange(startMin, startMin + durationMin)} · ${durationLabel(durationMin)}` },
+    ],
+    actions: [
+      { text: 'Change', style: 'secondary' },
+      { text: 'Confirm', onPress: () => onConfirm({ room, date, startMin, durationMin }) },
+    ],
+  });
 
   // Start times that still finish by closing time for the chosen duration.
   const starts: number[] = [];
@@ -57,7 +73,7 @@ export function LibraryBooking({ onBack, onConfirm }: { onBack: () => void; onCo
       title="Book a study room"
       sub="Main Library · Demo booking"
       onBack={onBack}
-      footer={<PrimaryButton label={'🗓️  Confirm demo booking'} onPress={() => onConfirm({ room, date, startMin, durationMin })} />}
+      footer={<PrimaryButton label={'🗓️  Confirm demo booking'} onPress={confirm} />}
     >
       <View style={s.lbPlanCard}>
         <Text style={s.lbPlanTitle}>Plan a little focus time.</Text>
@@ -89,6 +105,7 @@ export function LibraryBooking({ onBack, onConfirm }: { onBack: () => void; onCo
       </Text>
 
       <PrivacyNote text="Demo only. No room is held or booked. Select a room, date and start time; duration cannot exceed 2 hours." />
+      {popup.node}
     </LibPage>
   );
 }

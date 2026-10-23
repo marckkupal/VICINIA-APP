@@ -2,17 +2,50 @@ import { Text, View } from 'react-native';
 import { LibPage } from '../components/LibPage';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { PrivacyNote } from '../components/PrivacyNote';
+import { usePopup } from '../components/Popup';
 import type { CampusEvent } from '../data';
 import { s } from '../styles';
 
-export function EventDetails({ event: e, onBack, onRegister }: { event: CampusEvent; onBack: () => void; onRegister: () => void }) {
+export function EventDetails({ event: e, onBack, onRegister, registered = false, onUnregister }: {
+  event: CampusEvent; onBack: () => void; onRegister: () => void; registered?: boolean; onUnregister?: () => void;
+}) {
   const free = e.fee === 0;
+  const popup = usePopup();
+  const details = [
+    { label: 'When', value: `${e.dateShort} · ${e.time}` },
+    { label: 'Where', value: e.venue },
+    { label: 'Fee', value: free ? 'Free' : `₱${e.fee} · No payment collected` },
+  ];
+  const press = () => {
+    if (registered) {
+      return popup.show({
+        icon: '✅', iconBg: '#EAF3EC',
+        title: 'You’re registered',
+        body: 'You are on the demo list for this event. Need to change plans?',
+        details,
+        actions: [
+          { text: 'Keep registration', style: 'secondary' },
+          { text: 'Cancel registration', style: 'danger', onPress: () => onUnregister?.() },
+        ],
+      });
+    }
+    popup.show({
+      icon: e.icon, iconBg: e.bg,
+      title: `Register for ${e.title}?`,
+      body: 'Demo only. No real registration or payment will be submitted.',
+      details,
+      actions: [
+        { text: 'Not yet', style: 'secondary' },
+        { text: 'Register', onPress: onRegister },
+      ],
+    });
+  };
   const rows = [
     { icon: '🗓️', bg: '#FDF1C4', title: e.dateLong, sub: e.time },
     { icon: '📍', bg: '#E3F0E4', title: e.venue, sub: e.campus },
   ];
   return (
-    <LibPage title="Event details" sub="Campus events" onBack={onBack} footer={<PrimaryButton label="Register · Demo" onPress={onRegister} />}>
+    <LibPage title="Event details" sub="Campus events" onBack={onBack} footer={<PrimaryButton label={registered ? '✓  You’re registered' : 'Register · Demo'} onPress={press} />}>
       <View style={[s.evHero, { backgroundColor: e.bg }]}>
         <Text style={s.evKicker}>{e.kind} · {free ? 'FREE' : `₱${e.fee}`}</Text>
         <View style={s.evHeroRow}>
@@ -40,6 +73,7 @@ export function EventDetails({ event: e, onBack, onRegister }: { event: CampusEv
       </View>
 
       <PrivacyNote text="Demo registration only. No real registration or payment will be submitted." />
+      {popup.node}
     </LibPage>
   );
 }

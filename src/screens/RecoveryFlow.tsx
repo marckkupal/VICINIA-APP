@@ -1,17 +1,12 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 import { BackButton } from '../components/BackButton';
 import { Field } from '../components/Field';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { PrivacyNote } from '../components/PrivacyNote';
+import { EmojiIcon } from '../components/ProfileIcon';
 import { s } from '../styles';
+import { C } from '../theme';
 import { EMAIL_REGEX, PASSWORD_RULE, isStrongPassword, norm } from '../utils';
 
 type Step = 'forgot' | 'sent' | 'reset' | 'done';
@@ -19,8 +14,10 @@ type Step = 'forgot' | 'sent' | 'reset' | 'done';
 function Page({ children, footer, onBack }: { children: ReactNode; footer: ReactNode; onBack: () => void }) {
   return (
     <KeyboardAvoidingView style={s.fill} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={s.formContent} keyboardShouldPersistTaps="handled">
+      <View style={styles.header}>
         <BackButton onPress={onBack} />
+      </View>
+      <ScrollView contentContainerStyle={[s.formContent, styles.scrollContent]} keyboardShouldPersistTaps="handled">
         {children}
       </ScrollView>
       <View style={s.bottomBar}>{footer}</View>
@@ -87,7 +84,7 @@ export function RecoveryFlow({ onExit }: { onExit: () => void }) {
         <Text style={s.formSub}>If an account exists for that school email, recovery instructions would be sent. For your privacy, we don’t confirm whether an account exists.</Text>
         <View style={s.infoCard}>
           <View style={s.infoCardRow}>
-            <Text style={{ marginRight: 10 }}>✉️</Text>
+            <View style={{ marginRight: 10 }}><EmojiIcon glyph="✉️" /></View>
             <Text style={s.infoCardText}>In a live service, check your inbox and spam folder, then follow the password reset instructions.</Text>
           </View>
         </View>
@@ -156,3 +153,9 @@ export function RecoveryFlow({ onExit }: { onExit: () => void }) {
     </Page>
   );
 }
+
+const styles = StyleSheet.create({
+  // Pinned above the scrolling form.
+  header: { paddingHorizontal: 20, paddingTop: 20, backgroundColor: C.cream },
+  scrollContent: { paddingTop: 0 },
+});

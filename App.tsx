@@ -1,16 +1,7 @@
-import { useState, useEffect } from 'react';
-import {
-  View,
-  StatusBar,
-  ActivityIndicator,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { SEED_USERS } from './src/data';
-import { saveUsers, loadUsers } from './src/storage';
-import { s } from './src/styles';
-import { DEMO_PROFILE_SAVE } from './src/utils';
-import { C } from './src/theme';
-import type { TabKey, Stage, User } from './src/types';
+import React, { useEffect, useState } from 'react';
+import { ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+
 import {
   SplashScreen,
   Onboarding,
@@ -25,102 +16,181 @@ import {
   ProfileScreen,
   EditProfileScreen,
 } from './src/screens';
-import { LogoutModal, TabBar } from './src/components';
+import { TabBar } from './src/components/TabBar';
+import { LogoutModal } from './src/components/LogoutModal';
+import { SEED_USERS } from './src/data';
+import { loadUsers, saveUsers } from './src/storage';
+import { C } from './src/theme';
+import type { Stage, TabKey, User } from './src/types';
 
-const SPLASH_DURATION_MS = 3000; // how long the splash stays visible
+// Shows any crash on screen instead of a blank/white screen.
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: Error | null }> {
+  state = { error: null as Error | null };
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <ScrollView style={styles.errorBox} contentContainerStyle={styles.errorContent}>
+          <Text style={styles.errorTitle}>Something went wrong</Text>
+          <Text style={styles.errorText}>{String(this.state.error.message)}</Text>
+          <Text style={styles.errorText}>{String(this.state.error.stack ?? '')}</Text>
+        </ScrollView>
+      );
+    }
+    return this.props.children;
+  }
+}
 
-export default function App() {
+function Main(): React.JSX.Element {
+  const [showSplash, setShowSplash] = useState(true);
   const [stage, setStage] = useState<Stage>('onboarding');
+  const [users, setUsers] = useState<User[]>(SEED_USERS);
+  const [user, setUser] = useState<User | null>(null);
   const [tab, setTab] = useState<TabKey>('home');
   const [editing, setEditing] = useState(false);
+  const [profileSaved, setProfileSaved] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
-  const [savedNotice, setSavedNotice] = useState(false);
-  const [users, setUsers] = useState<User[]>(SEED_USERS);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [loaded, setLoaded] = useState(false);
-  const [showSplash, setShowSplash] = useState(true);
 
+  // Splash for ~1.8s, and load any accounts saved on this device.
   useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), SPLASH_DURATION_MS);
+    const timer = setTimeout(() => setShowSplash(false), 1800);
+    loadUsers()
+      .then((saved) => {
+        if (saved && saved.length) setUsers(saved);
+      })
+      .catch(() => {});
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    (async () => {
-      const saved = await loadUsers();
-      if (saved) setUsers(saved);
-      else await saveUsers(SEED_USERS);
-      setLoaded(true);
-    })();
-  }, []);
-
-  useEffect(() => {
-    if (loaded) saveUsers(users);
-  }, [users, loaded]);
-
-  const start = (u: User) => { setCurrentUser(u); setTab('home'); setEditing(false); setStage('app'); };
-
-  const handleSignUp = (u: User) => { setUsers([...users, u]); start(u); };
-
-  const handleSave = (updated: User) => {
-    if (!currentUser) return;
-    if (!DEMO_PROFILE_SAVE) {
-      setUsers(users.map((u) => (u.email === currentUser.email ? updated : u)));
-      setCurrentUser(updated);
-    }
-    setEditing(false);
-    setSavedNotice(true);
+  const addUser = (u: User) => {
+    const next = [...users, u];
+    setUsers(next);
+    saveUsers(next);
+    setUser(u);
+    setTab('home');
+    setStage('app');
   };
 
-  const handleLogout = () => {
+  const logIn = (u: User) => {
+    setUser(u);
+    setTab('home');
+    setStage('app');
+  };
+
+  const logOut = () => {
     setConfirmLogout(false);
-    setCurrentUser(null);
+    setUser(null);
     setEditing(false);
-    setSavedNotice(false);
-    setStage('login');
+    setProfileSaved(false);
+    setStage('welcome');
+  };
+
+  const saveProfile = (updated: User) => {
+    const next = users.map((u) => (user && u.email === user.email ? updated : u));
+    setUsers(next);
+    saveUsers(next);
+    setUser(updated);
+    setEditing(false);
+    setProfileSaved(true);
   };
 
   if (showSplash) return <SplashScreen />;
 
-  if (!loaded) {
-    return <SafeAreaView style={s.fill}><ActivityIndicator style={{ flex: 1 }} color={C.yellow} /></SafeAreaView>;
-  }
-
-  if (stage === 'onboarding') return <Onboarding onDone={() => setStage('welcome')} />;
-  if (stage === 'welcome') return <WelcomeScreen onSignUp={() => setStage('signup')} onLogin={() => setStage('login')} />;
-
-  if (stage === 'login' || stage === 'signup' || stage === 'forgot' || !currentUser) {
-    return (
-      <SafeAreaView style={s.fill}>
-        <StatusBar barStyle="dark-content" />
-        {stage === 'signup' ? (
-          <SignUpScreen users={users} onSignUp={handleSignUp} onBack={() => setStage('welcome')} onSwitch={() => setStage('login')} />
-        ) : stage === 'forgot' ? (
-          <RecoveryFlow onExit={() => setStage('login')} />
-        ) : (
-          <LoginScreen users={users} onLogin={start} onBack={() => setStage('welcome')} onSwitch={() => setStage('signup')} onForgot={() => setStage('forgot')} />
-        )}
-      </SafeAreaView>
-    );
-  }
-
-  const renderScreen = () => {
-    if (editing) return <EditProfileScreen user={currentUser} onSave={handleSave} onClose={() => setEditing(false)} />;
-    switch (tab) {
-      case 'home': return <HomeScreen user={currentUser} goProfile={() => setTab('profile')} />;
-      case 'explore': return <ExploreScreen />;
-      case 'boards': return <BoardsScreen />;
-      case 'events': return <EventsScreen user={currentUser} />;
-      case 'profile': return <ProfileScreen user={currentUser} onEdit={() => setEditing(true)} onLogout={() => setConfirmLogout(true)} saved={savedNotice} onDismissSaved={() => setSavedNotice(false)} goExplore={() => setTab('explore')} />;
+  const renderStage = () => {
+    switch (stage) {
+      case 'onboarding':
+        return <Onboarding onDone={() => setStage('welcome')} />;
+      case 'welcome':
+        return <WelcomeScreen onSignUp={() => setStage('signup')} onLogin={() => setStage('login')} />;
+      case 'login':
+        return (
+          <LoginScreen
+            users={users}
+            onLogin={logIn}
+            onBack={() => setStage('welcome')}
+            onSwitch={() => setStage('signup')}
+            onForgot={() => setStage('forgot')}
+          />
+        );
+      case 'signup':
+        return (
+          <SignUpScreen
+            users={users}
+            onSignUp={addUser}
+            onBack={() => setStage('welcome')}
+            onSwitch={() => setStage('login')}
+          />
+        );
+      case 'forgot':
+        return <RecoveryFlow onExit={() => setStage('login')} />;
+      case 'app':
+        if (!user) {
+          return <WelcomeScreen onSignUp={() => setStage('signup')} onLogin={() => setStage('login')} />;
+        }
+        if (editing) {
+          return <EditProfileScreen user={user} onSave={saveProfile} onClose={() => setEditing(false)} />;
+        }
+        return (
+          <View style={styles.fill}>
+            <View style={styles.fill}>
+              {tab === 'home' && <HomeScreen user={user} goProfile={() => setTab('profile')} />}
+              {tab === 'explore' && <ExploreScreen user={user} />}
+              {tab === 'boards' && <BoardsScreen user={user} />}
+              {tab === 'events' && <EventsScreen user={user} />}
+              {tab === 'profile' && (
+                <ProfileScreen
+                  user={user}
+                  onEdit={() => setEditing(true)}
+                  onLogout={() => setConfirmLogout(true)}
+                  saved={profileSaved}
+                  onDismissSaved={() => setProfileSaved(false)}
+                  goExplore={() => setTab('explore')}
+                  goEvents={() => setTab('events')}
+                  goBoards={() => setTab('boards')}
+                />
+              )}
+            </View>
+            <TabBar tab={tab} onChange={setTab} />
+            <LogoutModal
+              visible={confirmLogout}
+              onCancel={() => setConfirmLogout(false)}
+              onConfirm={logOut}
+            />
+          </View>
+        );
     }
   };
 
+  // Onboarding and Welcome are full-yellow screens, so the area behind the clock/notch
+  // must be yellow too. Every other screen keeps the cream background.
+  const yellowTop = stage === 'onboarding' || stage === 'welcome' || (stage === 'app' && !user);
+
   return (
-    <SafeAreaView style={s.fill}>
-      <StatusBar barStyle="dark-content" />
-      <View style={{ flex: 1 }}>{renderScreen()}</View>
-      <TabBar tab={tab} onChange={(t) => { setTab(t); setEditing(false); }} />
-      <LogoutModal visible={confirmLogout} onCancel={() => setConfirmLogout(false)} onConfirm={handleLogout} />
+    <SafeAreaView style={[styles.safe, yellowTop && styles.safeYellow]} edges={['top']}>
+      {renderStage()}
     </SafeAreaView>
   );
 }
+
+export default function App(): React.JSX.Element {
+  return (
+    <SafeAreaProvider>
+      <StatusBar barStyle="dark-content" />
+      <ErrorBoundary>
+        <Main />
+      </ErrorBoundary>
+    </SafeAreaProvider>
+  );
+}
+
+const styles = StyleSheet.create({
+  fill: { flex: 1 },
+  safe: { flex: 1, backgroundColor: C.cream },
+  safeYellow: { backgroundColor: C.yellow },
+  errorBox: { flex: 1, backgroundColor: '#fff' },
+  errorContent: { padding: 24, paddingTop: 80 },
+  errorTitle: { fontSize: 22, fontWeight: '800', color: '#B00020', marginBottom: 12 },
+  errorText: { fontSize: 13, color: '#222', marginBottom: 12 },
+});

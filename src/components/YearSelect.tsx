@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { YEARS } from '../data';
+import { EmojiIcon } from './ProfileIcon';
 import { s } from '../styles';
 import { C } from '../theme';
 
@@ -16,7 +17,7 @@ export function YearSelect({ value, onChange, errorText }: { value: string; onCh
         accessibilityLabel="Select year level"
         style={[s.fieldBox, !!errorText && { borderColor: C.error }, open && { borderColor: C.yellow }]}
       >
-        <Text style={s.fieldIcon}>📅</Text>
+        <View style={{ marginRight: 12 }}><EmojiIcon glyph="📅" /></View>
         <Text style={{ flex: 1, fontSize: 14, color: value ? C.dark : '#A5A296' }}>{value || 'Select your year'}</Text>
         <Text style={{ color: C.muted, fontSize: 12 }}>{open ? '▴' : '▾'}</Text>
       </TouchableOpacity>

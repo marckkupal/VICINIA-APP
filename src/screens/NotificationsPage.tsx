@@ -56,7 +56,7 @@ export function NotificationsPage({ onBack, onOpen, onSettings }: {
   const [filter, setFilter] = useState<Filter>('all');
   const shown = filter === 'unread' ? items.filter((n) => !n.read) : items;
 
-  const confirmClear = () => Alert.alert('Clear all notifications?', 'This removes every notification from the list. You can restore the demo ones afterwards.', [
+  const confirmClear = () => Alert.alert('Clear all notifications?', 'This removes every notification from the list.', [
     { text: 'Keep', style: 'cancel' },
     { text: 'Clear all', style: 'destructive', onPress: notifActions.clearAll },
   ]);
@@ -118,11 +118,6 @@ export function NotificationsPage({ onBack, onOpen, onSettings }: {
             {filter === 'unread' && items.length > 0 && (
               <TouchableOpacity style={[s.secondaryBtn, { alignSelf: 'stretch' }]} onPress={() => setFilter('all')} activeOpacity={0.8}>
                 <Text style={s.secondaryBtnText}>View all notifications</Text>
-              </TouchableOpacity>
-            )}
-            {items.length === 0 && (
-              <TouchableOpacity style={[s.secondaryBtn, { alignSelf: 'stretch' }]} onPress={notifActions.restore} activeOpacity={0.8}>
-                <Text style={s.secondaryBtnText}>Restore demo notifications</Text>
               </TouchableOpacity>
             )}
           </View>
