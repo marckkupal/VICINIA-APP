@@ -2,6 +2,8 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle, Path, Polygon, Rect } from 'react-native-svg';
 import { C } from '../theme';
 import { useTabRequests } from '../navigation';
+import { setTarget } from '../tour';
+import { TourOverlay } from './TourOverlay';
 import type { TabKey } from '../types';
 
 const ACTIVE = '#FFC107';
@@ -61,17 +63,22 @@ const TABS: { key: TabKey; label: string }[] = [
 export function TabBar({ tab, onChange }: { tab: TabKey; onChange: (t: TabKey) => void }) {
   useTabRequests(onChange); // screens can switch tabs through goToTab()
   return (
-    <View style={{ flexDirection: 'row', backgroundColor: C.dark, paddingTop: 14, paddingBottom: 22, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
+    <>
+    <View ref={(n) => setTarget('tabbar', n)} collapsable={false} style={{ flexDirection: 'row', backgroundColor: C.dark, paddingTop: 14, paddingBottom: 22, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
       {TABS.map((t) => {
         const on = tab === t.key;
         const color = on ? ACTIVE : INACTIVE;
         return (
-          <TouchableOpacity key={t.key} style={{ flex: 1, alignItems: 'center' }} activeOpacity={0.7} onPress={() => onChange(t.key)} accessibilityRole="tab" accessibilityState={{ selected: on }}>
-            <Icon name={t.key} color={color} />
-            <Text style={{ fontSize: 13, marginTop: 5, color, fontWeight: on ? '800' : '500' }}>{t.label}</Text>
-          </TouchableOpacity>
+          <View key={t.key} ref={(n) => setTarget(`tab-${t.key}`, n)} collapsable={false} style={{ flex: 1 }}>
+            <TouchableOpacity style={{ alignItems: 'center' }} activeOpacity={0.7} onPress={() => onChange(t.key)} accessibilityRole="tab" accessibilityState={{ selected: on }}>
+              <Icon name={t.key} color={color} />
+              <Text style={{ fontSize: 13, marginTop: 5, color, fontWeight: on ? '800' : '500' }}>{t.label}</Text>
+            </TouchableOpacity>
+          </View>
         );
       })}
     </View>
+    <TourOverlay />
+    </>
   );
 }

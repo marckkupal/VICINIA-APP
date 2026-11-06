@@ -1,0 +1,19 @@
+{
+  "order": 200,
+  "id": "ace-q",
+  "group": "academic",
+  "full_name": "Abstract Combination with Emotional Quotient (ACE-Q)",
+  "short_name": "ACE-Q",
+  "category": "Mathematics",
+  "description": "ACE-Q is a non-profit, non-political, non-sectarian student organization at T.I.P. Quezon City focused on mathematics, physics, and emotional intelligence. It supports students through peer tutorials, collaborative activities, and holistic development.",
+  "description_verified": true,
+  "tags": [
+    "mathematics",
+    "physics",
+    "emotional-intelligence"
+  ],
+  "publication_status": "draft_needs_review",
+  "logo": "assets/logo.png",
+  "logo_kind": "crop_of_report_extract_unverified_branding",
+  "featured_event_id": "rgc-review-group-conference"
+}

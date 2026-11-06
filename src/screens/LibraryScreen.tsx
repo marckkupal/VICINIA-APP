@@ -5,7 +5,7 @@ import { useToast } from '../components/Toast';
 import { usePopup } from '../components/Popup';
 import { OfficeIcon } from '../components/OfficeIcon';
 import type { OfficeIconName } from '../components/OfficeIcon';
-import { LIBRARY } from '../data';
+import { LIBRARY, OFFICE_THEME } from '../data';
 import { s } from '../styles';
 import { C } from '../theme';
 import type { User } from '../types';
@@ -85,7 +85,7 @@ export function LibraryScreen({ onBack, user }: { onBack: () => void; user?: Use
         </View>
       </View>
       <ScrollView style={s.fill} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        <View style={s.libHero}>
+        <View style={[s.libHero, { backgroundColor: OFFICE_THEME.library.bg, borderWidth: 1, borderColor: OFFICE_THEME.library.border }]}>
           <View style={s.libHeroIcon}><OfficeIcon name="library" size={34} color={C.yellow} strokeWidth={1.6} /></View>
           <View style={{ flex: 1 }}>
             <Text style={s.libHeroTitle}>{LIBRARY.name}</Text>
@@ -96,7 +96,7 @@ export function LibraryScreen({ onBack, user }: { onBack: () => void; user?: Use
         <View style={s.libInfoCard}>
           {LIBRARY.info.map((i, idx) => (
             <View key={i.key} style={[s.rowCenter, idx < LIBRARY.info.length - 1 && { marginBottom: 10 }]}>
-              <View style={[s.libInfoIcon, { backgroundColor: i.bg }]}><OfficeIcon name={i.icon as OfficeIconName} size={18} /></View>
+              <View style={[s.libInfoIcon, { backgroundColor: OFFICE_THEME.library.bg }]}><OfficeIcon name={i.icon as OfficeIconName} size={18} /></View>
               <View style={{ flex: 1 }}>
                 <Text style={s.libInfoLabel}>{i.label}</Text>
                 <Text style={s.libInfoValue}>{i.value}</Text>
@@ -117,7 +117,7 @@ export function LibraryScreen({ onBack, user }: { onBack: () => void; user?: Use
             activeOpacity={0.7}
             onPress={() => openPlan(p.key, p.title)}
           >
-            <View style={[s.libPlanIcon, { backgroundColor: p.bg }]}><OfficeIcon name={p.icon as OfficeIconName} size={24} /></View>
+            <View style={[s.libPlanIcon, { backgroundColor: OFFICE_THEME.library.bg }]}><OfficeIcon name={p.icon as OfficeIconName} size={24} /></View>
             <View style={{ flex: 1 }}>
               <Text style={s.postName}>{p.title}</Text>
               <Text style={[s.muted, { fontSize: 13, marginTop: 2 }]}>{p.sub}</Text>

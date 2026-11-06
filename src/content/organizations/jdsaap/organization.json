@@ -1,0 +1,18 @@
+{
+  "order": 203,
+  "id": "jdsaap",
+  "group": "academic",
+  "full_name": "Junior Data Science and Artificial Intelligence Association of the Philippines (JDSAAP)",
+  "short_name": "JDSAAP",
+  "category": "Data Science",
+  "description": "JDSAAP is a student-led organization that helps college students build practical skills and ethical awareness in data science, analytics, and artificial intelligence through projects, workshops, competitions, and industry connections.",
+  "description_verified": true,
+  "tags": [
+    "data-science",
+    "artificial-intelligence"
+  ],
+  "publication_status": "draft_needs_review",
+  "logo": "assets/logo.png",
+  "logo_kind": "crop_of_report_extract_unverified_branding",
+  "featured_event_id": "datastream-jacked-into-the-grid"
+}

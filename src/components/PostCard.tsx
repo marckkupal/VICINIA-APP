@@ -1,32 +1,44 @@
 import { useState } from 'react';
-import { Image, View, Text, TouchableOpacity, Share, TextInput } from 'react-native';
+import { Image, Linking, View, Text, TouchableOpacity, Share, TextInput } from 'react-native';
 import { useToast } from './Toast';
 import { useActionSheet } from './ActionSheet';
 import { s } from '../styles';
 import { LineIcon } from './LineIcon';
 import type { LineIconName } from './LineIcon';
 import { C } from '../theme';
-import type { Post } from '../types';
+import type { Post, User } from '../types';
 import { fmtCount } from '../utils';
+import { usePostActivity } from '../postActivity';
+import { CommentsPanel } from './CommentsPanel';
+import { POST_REPORT_REASONS, reportItem, useHasReported } from '../reports';
 
-export function PostCard({ p }: { p: Post }) {
-  const [liked, setLiked] = useState(false);
+export function PostCard({ p, user }: { p: Post; user?: User | null }) {
+  // Likes and comments are saved per account (not local state), so they are still there after leaving the page or closing the app.
+  const { liked, toggleLike, replies: thread, addReply, hasSample } = usePostActivity(`post:${p.id}`, user?.email, { replies: p.comments, ago: '6h ago', author: p.name });
   const [hidden, setHidden] = useState(false);
+  const reportKey = `post:${p.id}`;
+  const reported = useHasReported(reportKey, user?.email);
   const [open, setOpen] = useState(false);
-  const [thread, setThread] = useState<{ id: string; text: string }[]>([]);
   const [text, setText] = useState('');
   const send = () => {
     if (!text.trim()) return toast.show('Write a comment first.');
-    setThread((c) => [...c, { id: `c-${Date.now()}`, text: text.trim() }]);
+    addReply(user?.name ?? 'You', text);
     setText('');
   };
   const toast = useToast();
   const sheet = useActionSheet();
   const share = () => Share.share({ message: `${p.title} · ${p.handle} on Vicinia` }).catch(() => toast.show('Could not open the share sheet.'));
+  // Step 2 of Report: pick what is wrong with the post.
+  const chooseReason = () => sheet.open('Why are you reporting this post?', [
+    ...POST_REPORT_REASONS.map((r) => ({
+      text: r,
+      onPress: () => { reportItem(reportKey, r, user?.email); toast.show(`Thanks, your report (${r.toLowerCase()}) was sent (demo).`); },
+    })),
+  ]);
   const more = () => sheet.open(p.title, [
     { text: 'Share', onPress: share },
     { text: 'Hide this post', onPress: () => setHidden(true) },
-    { text: 'Report', destructive: true, onPress: () => toast.show('Thanks, we’ll review this post (demo).') },
+    { text: reported ? 'Reported' : 'Report', destructive: !reported, onPress: reported ? () => toast.show('You already reported this post.') : chooseReason },
   ]);
   if (hidden) {
     return (
@@ -36,8 +48,9 @@ export function PostCard({ p }: { p: Post }) {
       </View>
     );
   }
+  const hasMedia = !!p.media && p.media.length > 0;
   const actions = [
-    { key: 'like', label: liked ? 'Liked' : 'Like', icon: 'heart' as LineIconName, onPress: () => setLiked(!liked), active: liked },
+    { key: 'like', label: liked ? 'Unlike' : 'Like', icon: 'heart' as LineIconName, onPress: toggleLike, active: liked },
     { key: 'comment', label: 'Comment', icon: 'comment' as LineIconName, onPress: () => setOpen((o) => !o), active: open },
     { key: 'share', label: 'Share', icon: 'compass' as LineIconName, onPress: share, active: false },
   ];
@@ -58,28 +71,37 @@ export function PostCard({ p }: { p: Post }) {
         </TouchableOpacity>
       </View>
 
-      {p.media && p.media.length > 0 && (
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 8 }}>
-          {p.media.map((uri, i) => (
-            <Image
-              key={`${uri}-${i}`} source={{ uri }} resizeMode="cover"
-              style={{ width: p.media!.length === 1 ? '100%' : '49%', height: p.media!.length === 1 ? 200 : 120, borderRadius: 14, backgroundColor: '#F3F1EA', marginRight: p.media!.length > 1 && i % 2 === 0 ? '2%' : 0, marginBottom: 6 }}
-            />
-          ))}
-        </View>
-      )}
-      <View style={[s.postTile, { backgroundColor: p.tint }]}>
+      <View style={[s.postTile, { backgroundColor: p.tint }, hasMedia && { height: 'auto', minHeight: 250 }]}>
         <View style={s.rowBetween}>
           <View style={s.tilePill}><Text style={s.tilePillText}>{p.tag}</Text></View>
           {p.live && <View style={s.livePill}><Text style={s.livePillText}>Live</Text></View>}
         </View>
+        {hasMedia && (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 12, marginBottom: 6 }}>
+            {p.media!.map((uri, i) => (
+              <Image
+                key={i} source={{ uri }} resizeMode="cover"
+                style={{ width: p.media!.length === 1 ? '100%' : '49%', height: p.media!.length === 1 ? 200 : 120, borderRadius: 12, backgroundColor: '#F3F1EA', marginRight: p.media!.length > 1 && i % 2 === 0 ? '2%' : 0, marginBottom: 6 }}
+              />
+            ))}
+          </View>
+        )}
         <View>
           <Text style={s.tileTitle}>{p.title}</Text>
-          <View style={[s.rowCenter, { marginTop: 6 }]}>
-            <LineIcon name="heart" size={18} />
-            <Text style={[s.tileStat, { marginLeft: 6 }]}>{fmtCount(p.likes + (liked ? 1 : 0))}</Text>
-            <View style={{ marginLeft: 14 }}><LineIcon name="comment" size={18} /></View>
-            <Text style={[s.tileStat, { marginLeft: 6 }]}>{p.comments + thread.length}</Text>
+          {!!p.body && <Text style={{ fontSize: 13, color: C.dark, lineHeight: 19, marginTop: 6 }}>{p.body}</Text>}
+          {!!p.link && (
+            <Text numberOfLines={1} onPress={() => Linking.openURL(p.link as string).catch(() => toast.show('Could not open this link.'))} accessibilityRole="link" style={{ fontSize: 13, fontWeight: '700', color: '#3D5FC4', marginTop: 6, textDecorationLine: 'underline' }}>{p.link}</Text>
+          )}
+          {!!p.location && <Text style={{ fontSize: 12, fontWeight: '700', color: C.dark, marginTop: 8 }}>📍 {p.location.name}</Text>}
+          <View style={[s.rowCenter, { marginTop: 8 }]}>
+            <TouchableOpacity onPress={toggleLike} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityRole="button" accessibilityLabel={liked ? 'Unlike post' : 'Like post'} style={s.rowCenter}>
+              <LineIcon name="heart" size={20} color={liked ? C.orange : C.dark} filled={liked} />
+              <Text style={[s.tileStat, { marginLeft: 6 }]}>{fmtCount(p.likes + (liked ? 1 : 0))}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setOpen((o) => !o)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityRole="button" accessibilityLabel={`${thread.length} comments, tap to ${open ? 'hide' : 'view'}`} style={[s.rowCenter, { marginLeft: 16 }]}>
+              <LineIcon name="comment" size={20} color={open ? '#3D5FC4' : C.dark} filled={open} />
+              <Text style={[s.tileStat, { marginLeft: 6 }]}>{thread.length}</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -89,28 +111,33 @@ export function PostCard({ p }: { p: Post }) {
           <TouchableOpacity
             key={a.key}
             onPress={a.onPress}
-            style={[s.actionPill, a.active && { backgroundColor: C.yellow }, i < actions.length - 1 && { marginRight: 8 }]}
+            style={[s.actionPill, { justifyContent: 'center', paddingHorizontal: 6, minWidth: 0 }, a.active && { backgroundColor: C.yellow }, i < actions.length - 1 && { marginRight: 8 }]}
           >
-            <View style={{ marginRight: 8 }}><LineIcon name={a.icon} size={20} /></View>
-            <Text style={s.actionText}>{a.label}</Text>
+            <View style={{ marginRight: 6 }}><LineIcon name={a.icon} size={20} color={a.active && a.key === 'like' ? C.orange : C.dark} filled={a.active && (a.key === 'like' || a.key === 'comment')} /></View>
+            <Text style={[s.actionText, { flexShrink: 1 }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>{a.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
       {open && (
-        <View style={{ marginTop: 12 }}>
+        <CommentsPanel
+          title="Comments" count={thread.length} onClose={() => setOpen(false)}
+          note={hasSample ? 'Sample comments for the demo. Comments you write are saved on this device.' : undefined}
+          empty="No comments yet. Be the first to comment."
+          footer={(
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <TextInput value={text} onChangeText={setText} onSubmitEditing={send} returnKeyType="send" placeholder="Write a comment…" placeholderTextColor="#A5A296"
+                style={{ flex: 1, backgroundColor: '#F3F1EA', borderRadius: 16, paddingHorizontal: 14, paddingVertical: 8, fontSize: 13, color: C.dark, marginRight: 8 }} />
+              <TouchableOpacity onPress={send} style={[s.actionPill, { backgroundColor: C.yellow, flex: 0 }]}><Text style={s.actionText}>Send</Text></TouchableOpacity>
+            </View>
+          )}
+        >
           {thread.map((c) => (
             <View key={c.id} style={{ backgroundColor: '#F3F1EA', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 8 }}>
-              <Text style={{ fontSize: 12, fontWeight: '800', color: C.dark }}>You <Text style={{ fontWeight: '500', color: C.muted }}>· just now</Text></Text>
+              <Text style={{ fontSize: 12, fontWeight: '800', color: C.dark }}>{c.author} <Text style={{ fontWeight: '500', color: C.muted }}>· {c.ago}</Text></Text>
               <Text style={{ fontSize: 13, color: C.dark, lineHeight: 19, marginTop: 2 }}>{c.text}</Text>
             </View>
           ))}
-          {thread.length === 0 && <Text style={[s.muted, { fontSize: 12, marginBottom: 8 }]}>No new comments yet. Be the first to comment.</Text>}
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <TextInput value={text} onChangeText={setText} onSubmitEditing={send} returnKeyType="send" placeholder="Write a comment…" placeholderTextColor="#A5A296"
-              style={{ flex: 1, backgroundColor: '#F3F1EA', borderRadius: 16, paddingHorizontal: 14, paddingVertical: 8, fontSize: 13, color: C.dark, marginRight: 8 }} />
-            <TouchableOpacity onPress={send} style={[s.actionPill, { backgroundColor: C.yellow }]}><Text style={s.actionText}>Send</Text></TouchableOpacity>
-          </View>
-        </View>
+        </CommentsPanel>
       )}
       {toast.node}
       {sheet.node}

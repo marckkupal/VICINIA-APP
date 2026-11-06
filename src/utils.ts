@@ -7,6 +7,8 @@ export const isGmail = (email: string) => GMAIL_REGEX.test(norm(email));
 export const SCHOOL_EMAIL_DOMAIN = 'tip.edu.ph';
 export const SCHOOL_EMAIL_REGEX = /^[a-z0-9]+(?:[._+-][a-z0-9]+)*@tip\.edu\.ph$/;
 export const isSchoolEmail = (email: string) => SCHOOL_EMAIL_REGEX.test(norm(email));
+// Accepted for sign-up: a school address (@tip.edu.ph) or any personal Gmail (@gmail.com).
+export const isAllowedEmail = (email: string) => isSchoolEmail(email) || isGmail(email);
 // Names: letters (incl. accented), spaces, hyphens, apostrophes and periods only; at least 2 letters. No digits or symbols.
 export const NAME_REGEX = /^[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ .'’-]*$/;
 export const isValidName = (name: string) => {
@@ -25,8 +27,8 @@ export const campusLabel = (university: string) =>
     ? /manila/i.test(university) ? 'TIP Manila' : 'TIP Quezon City'
     : university;
 
-// true  = Save Changes only previews the result; the original profile details stay unchanged.
-// false = Save Changes really updates the profile stored on this device.
+// Legacy switch, kept only so a root App.tsx that still imports it keeps compiling. Edit Profile no longer reads it:
+// Save Changes always writes to the account (see updateProfile in auth.ts).
 export const DEMO_PROFILE_SAVE = false;
 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];

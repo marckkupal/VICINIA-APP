@@ -1,0 +1,18 @@
+{
+  "order": 212,
+  "id": "tempest-gaming-society",
+  "group": "non-academic",
+  "full_name": "Tempest Gaming Society (TGS)",
+  "short_name": "TGS",
+  "category": "Gaming",
+  "description": "Tempest Gaming Society builds community among student gamers through tournaments, gaming events, and campus activities that encourage collaboration, sportsmanship, teamwork, and responsible gaming.",
+  "description_verified": true,
+  "tags": [
+    "gaming",
+    "esports"
+  ],
+  "publication_status": "draft_needs_review",
+  "logo": "assets/logo.png",
+  "logo_kind": "crop_of_report_extract_unverified_branding",
+  "featured_event_id": "valorant-summit-5v5"
+}

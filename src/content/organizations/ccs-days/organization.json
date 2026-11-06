@@ -1,0 +1,10 @@
+{
+  "order": 90,
+  "id": "tip-ccs-days",
+  "name": "CCS Days",
+  "category": "College Events",
+  "emoji": "🗓️",
+  "members": 0,
+  "sample": true,
+  "sampleLabel": "[Sample Event]"
+}

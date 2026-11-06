@@ -1,0 +1,18 @@
+{
+  "order": 10,
+  "organizationId": "8",
+  "id": "film",
+  "kind": "WORKSHOP",
+  "fee": 150,
+  "title": "Intro to Film Photography",
+  "icon": "📷",
+  "bg": "#FDF1C4",
+  "mon": "OCT",
+  "day": "10",
+  "dateLong": "Saturday, October 10, 2026",
+  "dateShort": "October 10, 2026",
+  "time": "2:00 PM",
+  "venue": "TIP QC Room 201",
+  "campus": "TIP Quezon City",
+  "about": "Explore the basics of film photography, from choosing a camera to working with light. A campus workshop for curious beginners and fellow photography enthusiasts."
+}

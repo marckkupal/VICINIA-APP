@@ -1,0 +1,19 @@
+{
+  "order": 60,
+  "organizationId": "8",
+  "id": "stress",
+  "kind": "WELLNESS",
+  "fee": 0,
+  "title": "Stress Management Workshop",
+  "icon": "🧘",
+  "bg": "#E3F0E4",
+  "mon": "NOV",
+  "day": "19",
+  "dateLong": "Thursday, November 19, 2026",
+  "dateShort": "November 19, 2026",
+  "time": "1:00 PM",
+  "venue": "Guidance Office",
+  "campus": "TIP Quezon City",
+  "about": "More details for this campus event will be shared by the organizer.",
+  "host": "guidance"
+}

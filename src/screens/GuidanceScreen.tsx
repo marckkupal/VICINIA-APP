@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { BackButton } from '../components/BackButton';
 import {
-  AnnouncementRow, AppointmentSteps, ContactCard, InquiryForm, OfficeHero, OfficeInfoCard, RecentRequests, RequestSummary,
+  AppointmentSteps, ContactCard, InquiryForm, OfficeHero, OfficeInfoCard, RecentRequests, RequestSummary,
 } from '../components/OfficeKit';
-import { EVENTS, GUIDANCE } from '../data';
+import { GUIDANCE, OFFICE_THEME } from '../data';
+import { OfficeEvents } from '../components/OfficeEvents';
 import { useOfficeRequests } from '../requests';
 import { s } from '../styles';
 import { C } from '../theme';
@@ -35,9 +36,6 @@ export function GuidanceScreen({ user, onBack, onOpenEvents }: { user: User; onB
     }
   }
 
-  // Three events organized by the office. Tapping any of them opens the Events page.
-  const events = EVENTS.filter((e) => e.host === 'guidance').slice(0, 3);
-
   return (
     <View style={s.screen}>
       <View style={s.libHeader}>
@@ -51,14 +49,14 @@ export function GuidanceScreen({ user, onBack, onOpenEvents }: { user: User; onB
       <ScrollView style={s.fill} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <OfficeHero office={GUIDANCE} />
         <OfficeInfoCard office={GUIDANCE} />
-        <AppointmentSteps title="How to request an appointment" steps={GUIDANCE.appointmentSteps ?? []} />
+        <AppointmentSteps title="How to request an appointment" steps={GUIDANCE.appointmentSteps ?? []} color={OFFICE_THEME.guidance.accent} />
 
         <View style={[s.rowBetween, { marginTop: 8 }]}>
           <Text style={[s.sectionTitle, { fontSize: 20 }]}>Events</Text>
           <Text style={{ fontSize: 14, fontWeight: '800', color: C.green }} onPress={onOpenEvents}>See all</Text>
         </View>
-        {events.map((e) => <AnnouncementRow key={e.id} event={e} onPress={onOpenEvents} />)}
-        {events.length === 0 && <Text style={[s.muted, { fontSize: 13, marginBottom: 14 }]}>No upcoming events from the office yet.</Text>}
+        {/* Up to three upcoming events organized by the office, from the events feed. Tapping one opens the Events page. */}
+        <OfficeEvents host="guidance" limit={3} onPress={onOpenEvents} />
 
         <ContactCard title="Contact the Office" sub="Send a private message to the Guidance Office" onPress={() => push({ k: 'form' })} />
         <RecentRequests items={items} onOpen={(id) => push({ k: 'done', id })} />

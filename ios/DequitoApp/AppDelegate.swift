@@ -2,6 +2,7 @@ import UIKit
 import React
 import React_RCTAppDelegate
 import ReactAppDependencyProvider
+import FirebaseCore
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -14,6 +15,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
+    // Start Firebase before React Native loads
+    if FirebaseApp.app() == nil {
+      FirebaseApp.configure()
+    }
+
     // Only build the React Native factory here. The window is created and
     // React Native is started from SceneDelegate (required on iOS 27).
     let delegate = ReactNativeDelegate()
@@ -50,6 +56,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
       in: window,
       launchOptions: nil
     )
+  }
+
+  // A vicinia:// link (for example the password-reset link) arrives while the app is running:
+  // pass it to React Native so Linking.addEventListener('url', ...) receives it.
+  func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+    for context in URLContexts {
+      _ = RCTLinkingManager.application(UIApplication.shared, open: context.url, options: [:])
+    }
   }
 }
 

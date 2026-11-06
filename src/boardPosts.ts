@@ -1,22 +1,12 @@
-import { useEffect, useState } from 'react';
 import type { BoardPost } from './boardData';
+import { createPersistedList } from './persist';
 
-// Posts people publish to each board. Kept in memory for the session, so they stay when you leave and re-open a board.
-// Swap for a backend or AsyncStorage (see storage.ts) to keep them across restarts.
-const store: Record<string, BoardPost[]> = {};
-const listeners = new Set<() => void>();
+// Posts people publish to each board. Saved on this device, so they are still there after the app is closed.
+// (Prototype storage: swap for a backend so posts are visible to every student.)
+const list = createPersistedList<BoardPost>('vicinia_board_posts');
 
-export const addBoardPost = (boardId: string, post: BoardPost) => {
-  store[boardId] = [post, ...(store[boardId] ?? [])];
-  listeners.forEach((l) => l());
-};
-
-export function useBoardPosts(boardId: string): BoardPost[] {
-  const [, force] = useState(0);
-  useEffect(() => {
-    const l = () => force((n) => n + 1);
-    listeners.add(l);
-    return () => { listeners.delete(l); };
-  }, []);
-  return store[boardId] ?? [];
-}
+export const addBoardPost = (boardId: string, post: BoardPost) => list.add(boardId, post);
+// Resolves once saved; rejects (and removes the post) if saving fails.
+export const addBoardPostAsync = (boardId: string, post: BoardPost) => list.addAsync(boardId, post);
+export const useBoardPosts = (boardId: string): BoardPost[] => list.useItems(boardId);
+export const loadBoardPosts = () => list.load();

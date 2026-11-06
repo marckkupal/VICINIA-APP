@@ -3,10 +3,12 @@ import { View, Text, TouchableOpacity, StatusBar } from 'react-native';
 import { LogoMark } from '../components/LogoMark';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { SLIDES } from '../data';
+import { markOnboardingSeen } from '../onboarding';
 import { s } from '../styles';
 import { C } from '../theme';
 
-export function Onboarding({ onDone }: { onDone: () => void }) {
+export function Onboarding({ onDone: finish }: { onDone: () => void }) {
+  const onDone = () => { markOnboardingSeen(); finish(); }; // Skip, last slide: remembered so the intro shows once
   const [step, setStep] = useState(-1); // -1 = intro
 
   if (step === -1) {
@@ -16,7 +18,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
         <View style={s.pill}><Text style={s.pillText}>YOUR CAMPUS COMMUNITY</Text></View>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <LogoMark size={96} />
-          <Text style={s.bigWordmark}>vicinia</Text>
+          <Text style={s.bigWordmark}>Vicinia</Text>
           <Text style={s.introTitle}>Your campus,{'\n'}closer than ever.</Text>
           <Text style={s.introBody}>Find people, places, events, communities, and wellbeing support around TIP Quezon City.</Text>
         </View>
@@ -33,12 +35,12 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
       <StatusBar barStyle="light-content" />
       <View style={s.slideTop}>
         <View style={s.slideNav}>
-          <TouchableOpacity style={s.circleSm} onPress={() => setStep(step - 1)}><Text>←</Text></TouchableOpacity>
+          <TouchableOpacity style={s.circleSm} onPress={() => setStep(step - 1)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityRole="button" accessibilityLabel="Previous"><Text>←</Text></TouchableOpacity>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <LogoMark size={28} />
-            <Text style={s.navWordmark}> vicinia</Text>
+            <Text style={s.navWordmark}> Vicinia</Text>
           </View>
-          <TouchableOpacity onPress={onDone}><Text style={s.skip}>Skip</Text></TouchableOpacity>
+          <TouchableOpacity onPress={onDone} style={{ minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center' }} accessibilityRole="button" accessibilityLabel="Skip intro"><Text style={s.skip}>Skip</Text></TouchableOpacity>
         </View>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ fontSize: 150, textAlign: 'center' }}>{slide.icon}</Text>

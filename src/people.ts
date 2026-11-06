@@ -1,3 +1,5 @@
+import { loadJSON, saveJSON } from './persist';
+
 // Sample campus members and chat threads for the demo. Not real people.
 export interface Person {
   id: string; name: string; handle: string; bg: string;
@@ -56,11 +58,20 @@ const THREADS: Record<string, ChatMsg[]> = {
 const chatListeners = new Set<() => void>();
 
 export const getThread = (personId: string): ChatMsg[] => THREADS[personId] ?? [];
+// Messages are saved on this device. They load once at startup, and sending waits for that so nothing is overwritten.
+const CHAT_KEY = 'vicinia_chat';
+const chatReady = loadJSON<Record<string, ChatMsg[]>>(CHAT_KEY, {}).then((saved) => {
+  Object.keys(saved ?? {}).forEach((id) => { if (Array.isArray(saved[id])) THREADS[id] = saved[id]; });
+  chatListeners.forEach((l) => l());
+});
 export const sendMessage = (personId: string, text: string) => {
   const t = text.trim();
   if (!t) return;
-  THREADS[personId] = [...getThread(personId), { id: `m${Date.now()}`, mine: true, text: t, at: Date.now() }];
-  chatListeners.forEach((l) => l());
+  chatReady.then(() => {
+    THREADS[personId] = [...getThread(personId), { id: `m${Date.now()}`, mine: true, text: t, at: Date.now() }];
+    chatListeners.forEach((l) => l());
+    saveJSON(CHAT_KEY, THREADS);
+  });
 };
 export const subscribeChat = (l: () => void) => {
   chatListeners.add(l);

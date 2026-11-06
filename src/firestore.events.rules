@@ -1,0 +1,19 @@
+// Add inside `match /databases/{database}/documents { ... }` in your Firestore rules (Firebase console -> Firestore -> Rules).
+// Anyone signed in can read events; a signed-in student can post one as themselves; only the owner can change or delete it.
+// Office events (host = 'guidance' / 'osa') and `featured` should be set by staff in the console, so students cannot set them.
+match /events/{eventId} {
+  allow read: if request.auth != null;           // use `if true` if signed-out visitors should see events
+  allow create: if request.auth != null
+    && request.resource.data.ownerUid == request.auth.uid
+    && request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 60
+    && request.resource.data.startsAt is timestamp
+    && request.resource.data.venue is string
+    && !('host' in request.resource.data) && !('featured' in request.resource.data) && !('goingCount' in request.resource.data);
+  // The owner may edit their event but not promote it: host, featured, goingCount and ownerUid cannot change on update
+  // (create already forbids setting them, so without this an owner could add them afterwards).
+  allow update: if request.auth != null && resource.data.ownerUid == request.auth.uid
+    && request.resource.data.ownerUid == resource.data.ownerUid
+    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['host', 'featured', 'goingCount', 'ownerUid'])
+    && request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 60;
+  allow delete: if request.auth != null && resource.data.ownerUid == request.auth.uid;
+}

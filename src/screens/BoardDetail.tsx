@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { Image, Linking, ScrollView, Share, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, Linking, Share, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useToast } from '../components/Toast';
 import { LineIcon } from '../components/LineIcon';
 import { usePopup } from '../components/Popup';
-import { BOARD_DETAILS, fallbackDetail } from '../boardData';
+import { BOARD_DETAILS, fallbackDetail, userBoardDetail } from '../boardData';
 import type { BoardPost } from '../boardData';
 import { s } from '../styles';
 import { C } from '../theme';
@@ -12,7 +12,11 @@ import type { Board, User } from '../types';
 import { fmtCount } from '../utils';
 import { toggleBoard, useMembership } from '../membership';
 import { useBoardPosts } from '../boardPosts';
+import { usePostActivity } from '../postActivity';
 import { CreatePost } from './CreatePost';
+import { defaultDestination } from '../postTargets';
+import { CommentsPanel } from '../components/CommentsPanel';
+import { KeyboardScroll } from '../components/KeyboardAware';
 
 type Tab = 'posts' | 'members' | 'about';
 type Sort = 'latest' | 'popular' | 'following';
@@ -65,12 +69,10 @@ function RichText({ text }: { text: string }) {
   );
 }
 
-type Comment = { id: string; author: string; text: string; ago: string };
-
-function BoardPostCard({ p, idx, me, onToast }: { p: BoardPost; idx: number; me: string; onToast: (m: string) => void }) {
-  const [liked, setLiked] = useState(false);
+function BoardPostCard({ p, idx, me, boardId, email, onToast }: { p: BoardPost; idx: number; me: string; boardId: string; email?: string | null; onToast: (m: string) => void }) {
+  // Post ids repeat between boards ('a', 'b'…), so the board id is part of the key. Likes and replies are saved, not kept in local state.
+  const { vote, castVote, replies, addReply, hasSample } = usePostActivity(`${boardId}:${p.id}`, email, p);
   const [open, setOpen] = useState(false);
-  const [comments, setComments] = useState<Comment[]>([]);
   const [text, setText] = useState('');
   const popup = usePopup();
   const REASONS = ['Spam or advertising', 'Harassment or bullying', 'Off-topic for this board', 'Something else'];
@@ -95,7 +97,7 @@ function BoardPostCard({ p, idx, me, onToast }: { p: BoardPost; idx: number; me:
   });
   const send = () => {
     if (!text.trim()) return onToast('Write a reply first.');
-    setComments((c) => [...c, { id: `c-${Date.now()}`, author: me, text: text.trim(), ago: 'just now' }]);
+    addReply(me, text);
     setText('');
   };
   return (
@@ -120,7 +122,7 @@ function BoardPostCard({ p, idx, me, onToast }: { p: BoardPost; idx: number; me:
       {!!p.media?.length && (
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 12 }}>
           {p.media.map((m, i) => (
-            <View key={m.uri} style={{ width: p.media!.length === 1 ? '100%' : '49%', height: p.media!.length === 1 ? 200 : 120, marginRight: p.media!.length > 1 && i % 2 === 0 ? '2%' : 0, marginBottom: 6, borderRadius: 12, overflow: 'hidden', backgroundColor: '#1F1F1F', alignItems: 'center', justifyContent: 'center' }}>
+            <View key={i} style={{ width: p.media!.length === 1 ? '100%' : '49%', height: p.media!.length === 1 ? 200 : 120, marginRight: p.media!.length > 1 && i % 2 === 0 ? '2%' : 0, marginBottom: 6, borderRadius: 12, overflow: 'hidden', backgroundColor: '#1F1F1F', alignItems: 'center', justifyContent: 'center' }}>
               {m.type === 'photo' ? <Image source={{ uri: m.uri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" /> : <Text style={{ color: '#fff', fontWeight: '800' }}>▶ Video</Text>}
             </View>
           ))}
@@ -133,27 +135,36 @@ function BoardPostCard({ p, idx, me, onToast }: { p: BoardPost; idx: number; me:
       )}
       {!p.title && !p.text ? null : <View style={{ height: p.title && !p.text && !p.link ? 6 : 0 }} />}
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <TouchableOpacity
-          onPress={() => setLiked((v) => !v)}
-          activeOpacity={0.8}
-          accessibilityRole="button"
-          accessibilityLabel={liked ? 'Unlike post' : 'Like post'}
-          style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: liked ? '#FDF1C4' : '#F3F1EA', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 7, marginRight: 8 }}
-        >
-          <LineIcon name="heart" size={15} color={liked ? C.orange : C.muted} />
-          <Text style={{ fontSize: 12, fontWeight: '800', color: C.dark, marginLeft: 6 }}>{p.votes + (liked ? 1 : 0)}</Text>
-          <Text style={{ fontSize: 12, fontWeight: '700', color: liked ? C.orange : C.muted, marginLeft: 6 }}>{liked ? 'Unlike' : 'Like'}</Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: vote === 1 ? '#FDF1C4' : vote === -1 ? '#E6EDFB' : '#F3F1EA', borderRadius: 16, paddingHorizontal: 6, marginRight: 8 }}>
+          <TouchableOpacity onPress={() => castVote(1)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }} accessibilityRole="button" accessibilityState={{ selected: vote === 1 }} accessibilityLabel={vote === 1 ? 'Remove upvote' : 'Upvote'} style={{ paddingHorizontal: 6, paddingVertical: 7 }}>
+            <LineIcon name="arrowUp" size={18} color={vote === 1 ? C.orange : C.muted} filled={vote === 1} />
+          </TouchableOpacity>
+          <Text style={{ minWidth: 22, textAlign: 'center', fontSize: 13, fontWeight: '800', color: vote === 1 ? C.orange : vote === -1 ? '#3D5FC4' : C.dark }}>{p.votes + vote}</Text>
+          <TouchableOpacity onPress={() => castVote(-1)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }} accessibilityRole="button" accessibilityState={{ selected: vote === -1 }} accessibilityLabel={vote === -1 ? 'Remove downvote' : 'Downvote'} style={{ paddingHorizontal: 6, paddingVertical: 7 }}>
+            <LineIcon name="arrowDown" size={18} color={vote === -1 ? '#3D5FC4' : C.muted} filled={vote === -1} />
+          </TouchableOpacity>
+        </View>
         <Pill onPress={() => setOpen((o) => !o)} active={open}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <LineIcon name="comment" size={15} color="#3D5FC4" />
-            <Text style={{ fontSize: 12, fontWeight: '600', color: C.muted, marginLeft: 6 }}>{p.replies + comments.length} {p.replies + comments.length === 1 ? 'reply' : 'replies'}</Text>
+            <LineIcon name="comment" size={17} color="#3D5FC4" filled={open} />
+            <Text style={{ fontSize: 12, fontWeight: '600', color: C.muted, marginLeft: 6 }}>{replies.length} {replies.length === 1 ? 'reply' : 'replies'}</Text>
           </View>
         </Pill>
       </View>
       {open && (
-        <View style={{ marginTop: 12, borderTopWidth: 1, borderTopColor: C.border, paddingTop: 12 }}>
-          {comments.map((c, i) => (
+        <CommentsPanel
+          title="Replies" count={replies.length} onClose={() => setOpen(false)}
+          note={hasSample ? 'Sample replies for the demo. Replies you write are saved on this device.' : undefined}
+          empty="No replies yet. Be the first to reply."
+          footer={(
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <TextInput value={text} onChangeText={setText} onSubmitEditing={send} returnKeyType="send" placeholder="Write a reply…" placeholderTextColor="#A5A296"
+                style={{ flex: 1, backgroundColor: '#F3F1EA', borderRadius: 16, paddingHorizontal: 14, paddingVertical: 8, fontSize: 13, color: C.dark, marginRight: 8 }} />
+              <Pill onPress={send} active>Send</Pill>
+            </View>
+          )}
+        >
+          {replies.map((c, i) => (
             <View key={c.id} style={{ flexDirection: 'row', marginBottom: 10 }}>
               <Av name={c.author} size={28} i={i + 1} />
               <View style={{ flex: 1, backgroundColor: '#F3F1EA', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8 }}>
@@ -162,13 +173,7 @@ function BoardPostCard({ p, idx, me, onToast }: { p: BoardPost; idx: number; me:
               </View>
             </View>
           ))}
-          {comments.length === 0 && <Text style={[s.muted, { fontSize: 12, marginBottom: 10 }]}>No replies yet. Be the first to reply.</Text>}
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <TextInput value={text} onChangeText={setText} onSubmitEditing={send} returnKeyType="send" placeholder="Write a reply…" placeholderTextColor="#A5A296"
-              style={{ flex: 1, backgroundColor: '#F3F1EA', borderRadius: 16, paddingHorizontal: 14, paddingVertical: 8, fontSize: 13, color: C.dark, marginRight: 8 }} />
-            <Pill onPress={send} active>Send</Pill>
-          </View>
-        </View>
+        </CommentsPanel>
       )}
       {popup.node}
     </View>
@@ -176,7 +181,7 @@ function BoardPostCard({ p, idx, me, onToast }: { p: BoardPost; idx: number; me:
 }
 
 export function BoardDetail({ board, user, onBack, embedded }: { board: Board; user?: User; onBack: () => void; embedded?: boolean }) {
-  const d = BOARD_DETAILS[board.id] ?? fallbackDetail(board.name);
+  const d = BOARD_DETAILS[board.id] ?? (board.createdBy ? userBoardDetail(board) : fallbackDetail(board.name));
   const [tab, setTab] = useState<Tab>('posts');
   const [sort, setSort] = useState<Sort>('latest');
   const mem = useMembership(user?.email);
@@ -205,7 +210,7 @@ export function BoardDetail({ board, user, onBack, embedded }: { board: Board; u
     });
   };
   if (composing) {
-    return <CreatePost board={board} user={user} onClose={(to) => { setComposing(false); if (to) toast.show(`Posted to ${to.name}.`); }} />;
+    return <CreatePost user={user} initial={defaultDestination({ tab: 'boards', boardId: board.id })} onClose={(r) => { setComposing(false); if (r) toast.show(`Posted to ${r.label}.`); }} />;
   }
 
   const header = (
@@ -215,7 +220,7 @@ export function BoardDetail({ board, user, onBack, embedded }: { board: Board; u
       </TouchableOpacity>
       <View style={{ flex: 1, marginLeft: 14 }}>
         <Text style={{ fontSize: 22, fontWeight: '900', color: C.dark }}>{board.label ?? board.name}</Text>
-        <Text style={s.libSub}>{fmtCount(members)} members · {board.online ?? 0} online</Text>
+        <Text style={s.libSub}>{board.sample ? `${board.sampleLabel ?? '[Sample]'} · details not confirmed yet` : `${fmtCount(members)} members · ${board.online ?? 0} online`}</Text>
       </View>
       <TouchableOpacity style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.yellow, alignItems: 'center', justifyContent: 'center' }} onPress={soon} accessibilityLabel="New post">
         <Text style={{ fontSize: 22, fontWeight: '900', color: C.dark, marginTop: -2 }}>+</Text>
@@ -272,11 +277,11 @@ export function BoardDetail({ board, user, onBack, embedded }: { board: Board; u
               <Text style={{ flex: 1, fontSize: 13, color: C.muted }}>Share something with the board…</Text>
               <PhotoIcon />
             </TouchableOpacity>
-            {sort !== 'following' && mine.map((p, i) => <BoardPostCard key={p.id} p={p} idx={i} me={user?.name ?? 'You'} onToast={toast.show} />)}
-            {feed.map((p, i) => <BoardPostCard key={p.id} p={p} idx={i + mine.length} me={user?.name ?? 'You'} onToast={toast.show} />)}
-            {feed.length === 0 && (
+            {sort !== 'following' && mine.map((p, i) => <BoardPostCard key={p.id} p={p} idx={i} me={user?.name ?? 'You'} boardId={board.id} email={user?.email} onToast={toast.show} />)}
+            {feed.map((p, i) => <BoardPostCard key={p.id} p={p} idx={i + mine.length} me={user?.name ?? 'You'} boardId={board.id} email={user?.email} onToast={toast.show} />)}
+            {feed.length === 0 && (sort === 'following' || mine.length === 0) && (
               <Text style={[s.muted, { fontSize: 13, marginBottom: 14 }]}>
-                {sort === 'following' ? 'Follow members to see their posts here.' : 'No posts in this demo board yet.'}
+                {sort === 'following' ? 'Follow members to see their posts here.' : board.createdBy ? 'No posts yet. Be the first to start a conversation.' : 'No posts in this demo board yet.'}
               </Text>
             )}
           </>
@@ -311,7 +316,8 @@ export function BoardDetail({ board, user, onBack, embedded }: { board: Board; u
             <View style={[card, { paddingHorizontal: 16 }]}>
               {[
                 { icon: '👥', text: `${fmtCount(members)} members` },
-                { icon: '📝', text: `${d.posts} total posts` },
+                { icon: '📝', text: `${d.posts + mine.length} total posts` },
+                ...(board.createdByName ? [{ icon: '👤', text: `Created by ${board.createdByName}` }] : []),
                 { icon: '📍', text: 'TIP Quezon City Campus' },
                 { icon: '🏫', text: 'Open to all TIP QC students' },
               ].map((r, i) => (
@@ -329,18 +335,18 @@ export function BoardDetail({ board, user, onBack, embedded }: { board: Board; u
   // Embedded inside another scrolling page (e.g. LibPage) keep one scroll view; otherwise pin the header.
   if (embedded) {
     return (
-      <ScrollView style={s.screen} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <KeyboardScroll style={s.screen} showsVerticalScrollIndicator={false}>
         {header}
         {body}
-      </ScrollView>
+      </KeyboardScroll>
     );
   }
   return (
     <View style={s.screen}>
       {header}
-      <ScrollView style={s.fill} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <KeyboardScroll style={s.fill} showsVerticalScrollIndicator={false}>
         {body}
-      </ScrollView>
+      </KeyboardScroll>
     </View>
   );
 }

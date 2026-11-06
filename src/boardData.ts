@@ -1,6 +1,6 @@
 export interface BoardPost {
   id: string; author: string; ago: string; text: string; votes: number; replies: number;
-  title?: string; flair?: string; link?: string; alerts?: boolean; media?: { uri: string; type: 'photo' | 'video' }[]; // set by the Create post screen
+  title?: string; flair?: string; link?: string; alerts?: boolean; authorEmail?: string; boardId?: string; media?: { uri: string; type: 'photo' | 'video' }[]; // set by the Create post screen
 }
 export interface BoardMember { name: string; role: 'Admin' | 'Moderator' | 'Member' }
 export interface BoardDetailData {
@@ -9,6 +9,18 @@ export interface BoardDetailData {
 }
 
 export const BOARD_DETAILS: Record<string, BoardDetailData> = {
+  'tip-qc': {
+    description: 'The general board for students of the Technological Institute of the Philippines, Quezon City campus (938 Aurora Boulevard, Cubao).',
+    posts: 0, showTitle: true, members: [], feed: [],
+  },
+  'tip-orgs': {
+    description: 'A space for recognized student organizations at T.I.P. Quezon City to share updates. The list of recognized organizations hasn’t been confirmed yet, so nothing is listed here.',
+    posts: 0, showTitle: true, members: [], feed: [],
+  },
+  'tip-ccs-days': {
+    description: 'Placeholder board for college days at T.I.P. Quezon City. Dates, schedules and organizers haven’t been confirmed yet.',
+    posts: 0, showTitle: true, members: [], feed: [],
+  },
   '1': {
     description: 'For TIP otakus! Share anime recs, watch parties, and cosplay events on campus.', posts: 128, showTitle: false,
     members: [
@@ -116,4 +128,12 @@ export const BOARD_DETAILS: Record<string, BoardDetailData> = {
 export const fallbackDetail = (name: string): BoardDetailData => ({
   description: `A TIP campus community for ${name}. Demo content isn’t loaded for this board yet.`,
   posts: 0, showTitle: true, members: [], feed: [],
+});
+
+// Boards created by students: the page shows what the creator wrote, with the creator as its first admin and no posts yet.
+export const userBoardDetail = (b: { description?: string; createdByName?: string }): BoardDetailData => ({
+  description: b.description ?? '',
+  posts: 0, showTitle: true,
+  members: b.createdByName ? [{ name: b.createdByName, role: 'Admin' }] : [],
+  feed: [],
 });

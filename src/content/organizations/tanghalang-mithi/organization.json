@@ -1,0 +1,18 @@
+{
+  "order": 211,
+  "id": "tanghalang-mithi",
+  "group": "non-academic",
+  "full_name": "Tanghalang Mithi",
+  "short_name": "Tanghalang Mithi",
+  "category": "Performing Arts",
+  "description": "Tanghalang Mithi is a recognized student organization at T.I.P. Quezon City, home of the T.I.P. Tanghalang Mithi Band. A fuller description is pending from the organization.",
+  "description_verified": false,
+  "tags": [
+    "performing-arts",
+    "music"
+  ],
+  "publication_status": "draft_needs_review",
+  "logo": "assets/logo.png",
+  "logo_kind": "crop_of_report_extract_unverified_branding",
+  "featured_event_id": "k1n5e-architecture-general-assembly"
+}

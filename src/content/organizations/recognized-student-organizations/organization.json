@@ -1,0 +1,10 @@
+{
+  "order": 80,
+  "id": "tip-orgs",
+  "name": "Recognized Student Organizations",
+  "category": "Student Orgs",
+  "emoji": "🤝",
+  "members": 0,
+  "sample": true,
+  "sampleLabel": "[Sample]"
+}

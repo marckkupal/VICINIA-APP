@@ -1,0 +1,12 @@
+{
+  "order": 10,
+  "id": "2",
+  "name": "Gaming Club",
+  "label": "Gaming",
+  "tagline": "Co-op, esports & tabletop",
+  "tint": "#EDE8F6",
+  "online": 61,
+  "newPosts": 38,
+  "members": 512,
+  "emoji": "🎮"
+}

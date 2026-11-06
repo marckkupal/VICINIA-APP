@@ -3,6 +3,8 @@ require_relative '../node_modules/react-native/scripts/react_native_pods'
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
+use_frameworks! :linkage => :dynamic
+
 target 'DequitoApp' do
   config = use_native_modules!
 
@@ -32,6 +34,15 @@ target 'DequitoApp' do
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
         config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+      end
+    end
+
+    # Link Apple frameworks that react-native-image-picker needs (fixes _UTType undefined symbols)
+    installer.pods_project.targets.each do |target|
+      if target.name == 'react-native-image-picker'
+        target.build_configurations.each do |config|
+          config.build_settings['OTHER_LDFLAGS'] = '$(inherited) -framework UniformTypeIdentifiers -framework MobileCoreServices'
+        end
       end
     end
   end

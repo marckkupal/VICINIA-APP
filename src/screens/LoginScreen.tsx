@@ -4,23 +4,46 @@ import { BackButton } from '../components/BackButton';
 import { Field } from '../components/Field';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { PrivacyNote } from '../components/PrivacyNote';
+import { GoogleButton } from '../components/GoogleButton';
 import { s } from '../styles';
 import { C } from '../theme';
 import type { User } from '../types';
-import { norm } from '../utils';
+import { EMAIL_REGEX, norm } from '../utils';
+import { friendlyAuthError, logIn, resendVerification } from '../auth';
 
-export function LoginScreen({ users, onLogin, onBack, onSwitch, onForgot }: { users: User[]; onLogin: (u: User) => void; onBack: () => void; onSwitch: () => void; onForgot?: () => void }) {
+// `users` is no longer used (Firebase checks the credentials); kept so App.tsx still compiles.
+export function LoginScreen({ onLogin, onBack, onSwitch, onForgot }: { users?: User[]; onLogin: (u: User) => void; onBack: () => void; onSwitch: () => void; onForgot?: () => void }) {
   const [id, setId] = useState('');
   const [pw, setPw] = useState('');
-  const [error, setError] = useState(false);
+  const [error, setError] = useState('');
+  const [unverified, setUnverified] = useState(false);
+  const [info, setInfo] = useState('');
+  const [busy, setBusy] = useState(false);
 
-  const submit = () => {
-    const key = norm(id);
-    const match = users.find(
-      (u) => (norm(u.email) === key || norm(u.email.split('@')[0]) === key) && u.password === pw
-    );
-    if (!match) return setError(true);
-    onLogin(match);
+  const submit = async () => {
+    if (busy) return;
+    setInfo('');
+    setUnverified(false);
+    if (!EMAIL_REGEX.test(norm(id)) || !pw) return setError('Enter your email and password.');
+    setBusy(true);
+    try {
+      const res = await logIn(id, pw);
+      if (res.status === 'ok') onLogin(res.user);
+      else setUnverified(true);
+    } catch (e: any) {
+      setError(friendlyAuthError(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const resend = async () => {
+    try {
+      await resendVerification();
+      setInfo('Verification email sent. Open the link, then tap Log In again.');
+    } catch (e: any) {
+      setInfo(friendlyAuthError(e));
+    }
   };
 
   return (
@@ -31,12 +54,22 @@ export function LoginScreen({ users, onLogin, onBack, onSwitch, onForgot }: { us
         <Text style={s.formSub}>Log in to Vicinia and reconnect with your campus circle.</Text>
       </View>
       <ScrollView contentContainerStyle={[s.formContent, styles.scrollContent]} keyboardShouldPersistTaps="handled">
-        <Field label="Email or username" icon="✉️" placeholder="Enter your email or username" value={id} onChangeText={(t) => { setId(t); setError(false); }} error={error} keyboardType="email-address" />
-        <Field label="Password" icon="🔒" placeholder="Enter your password" value={pw} onChangeText={(t) => { setPw(t); setError(false); }} secure error={error} />
-        {error && (
+        <Field label="Email" icon="✉️" placeholder="Enter your email" value={id} onChangeText={(t) => { setId(t); setError(''); setUnverified(false); }} error={!!error} keyboardType="email-address" />
+        <Field label="Password" icon="🔒" placeholder="Enter your password" value={pw} onChangeText={(t) => { setPw(t); setError(''); setUnverified(false); }} secure error={!!error} />
+        {!!error && (
           <View style={s.errorBox}>
             <Text style={{ color: C.error, marginRight: 8 }}>⚠️</Text>
-            <Text style={s.errorText}>Incorrect email, username, or password. Please try again.</Text>
+            <Text style={s.errorText}>{error}</Text>
+          </View>
+        )}
+        {unverified && (
+          <View style={s.infoCard}>
+            <Text style={s.infoCardTitle}>Verify your email first</Text>
+            <Text style={s.infoCardText}>This account isn’t verified yet. Open the link we emailed you, or send a new one.</Text>
+            <TouchableOpacity onPress={resend} style={s.linkBtn}>
+              <Text style={s.linkBtnText}>Resend verification email</Text>
+            </TouchableOpacity>
+            {!!info && <Text style={[s.fieldHelper, { textAlign: 'center' }]}>{info}</Text>}
           </View>
         )}
         {!!onForgot && (
@@ -44,10 +77,11 @@ export function LoginScreen({ users, onLogin, onBack, onSwitch, onForgot }: { us
             <Text style={s.linkBtnText}>Forgot password?</Text>
           </TouchableOpacity>
         )}
+        <GoogleButton onUser={onLogin} />
       </ScrollView>
       <View style={s.bottomBar}>
         <PrivacyNote />
-        <PrimaryButton label="Log In" onPress={submit} />
+        <PrimaryButton label="Log In" onPress={submit} busy={busy} />
         <TouchableOpacity onPress={onSwitch} style={{ marginTop: 12, alignItems: 'center' }}>
           <Text style={s.footLink}>New to Vicinia? <Text style={{ fontWeight: '800' }}>Create an account</Text></Text>
         </TouchableOpacity>

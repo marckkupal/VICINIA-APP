@@ -1,0 +1,12 @@
+{
+  "order": 100,
+  "id": "8",
+  "name": "Campus Events",
+  "label": "Campus Events",
+  "tagline": "What’s happening this week",
+  "tint": "#F5EAE6",
+  "online": 85,
+  "newPosts": 33,
+  "members": 1500,
+  "emoji": "🎪"
+}

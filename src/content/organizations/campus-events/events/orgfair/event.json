@@ -1,0 +1,23 @@
+{
+  "order": 0,
+  "organizationId": "8",
+  "id": "orgfair",
+  "kind": "CAMPUS LIFE",
+  "fee": 0,
+  "title": "Org Fair 2026",
+  "icon": "🎪",
+  "bg": "#FDF1C4",
+  "mon": "OCT",
+  "day": "08",
+  "dateLong": "Thursday, October 8, 2026",
+  "dateShort": "October 8, 2026",
+  "time": "10:00 AM",
+  "endTime": "5:00 PM",
+  "venue": "TIP QC Quadrangle",
+  "address": "938 Aurora Blvd., Cubao, Quezon City",
+  "campus": "TIP Quezon City",
+  "about": "Meet 100+ student organizations, discover communities that match your interests, and enjoy performances, games, and campus food stalls throughout the day.",
+  "organizer": "TIP Student Council",
+  "going": 1248,
+  "featured": true
+}

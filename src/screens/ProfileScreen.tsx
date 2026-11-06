@@ -4,13 +4,15 @@ import { Avatar } from '../components/Avatar';
 import { MenuRow } from '../components/MenuRow';
 import { ProfileIcon } from '../components/ProfileIcon';
 import { setActiveUser, useMembership } from '../membership';
+import { useSettings } from '../settings';
 import { LibPage } from '../components/LibPage';
 import { useToast } from '../components/Toast';
 import { useActionSheet } from '../components/ActionSheet';
+import { replayTour } from '../tour';
 import { s } from '../styles';
 import { C } from '../theme';
 import type { User } from '../types';
-import { DEMO_PROFILE_SAVE, campusLabel } from '../utils';
+import { campusLabel } from '../utils';
 import { SavedPlaces } from './SavedPlaces';
 import { EventsScreen } from './EventsScreen';
 import { BoardsScreen } from './BoardsScreen';
@@ -26,9 +28,10 @@ export function ProfileScreen({ user, onEdit, onLogout, saved, onDismissSaved, g
   const sheet = useActionSheet();
   setActiveUser(user.email);
   const mem = useMembership(user.email);
-  if (page === 'notifications') return <NotificationsScreen onBack={back} />;
+  const { notif } = useSettings(user.email);
+  if (page === 'notifications') return <NotificationsScreen onBack={back} email={user.email} />;
   if (page === 'privacy') return <PrivacySafetyScreen user={user} onBack={back} />;
-  if (page === 'help') return <HelpCenterScreen onBack={back} />;
+  if (page === 'help') return <HelpCenterScreen onBack={back} email={user.email} />;
   if (page === 'events') return <LibPage title="My events" sub="Events you registered for" onBack={back}><EventsScreen user={user} embedded /></LibPage>;
   if (page === 'boards') return <LibPage title="My boards" sub="Boards you joined" onBack={back}><BoardsScreen user={user} embedded /></LibPage>;
   if (page === 'saved') {
@@ -47,7 +50,7 @@ export function ProfileScreen({ user, onEdit, onLogout, saved, onDismissSaved, g
           <Text style={[s.header, { marginBottom: 0, fontSize: 26 }]}>Your profile</Text>
           <View style={s.rowCenter}>
             <TouchableOpacity
-              style={[s.headerBtn, { backgroundColor: C.dark, marginRight: 10 }]}
+              style={[s.headerBtn, { backgroundColor: C.dark, width: 44, height: 44, marginRight: 10 }]}
               accessibilityLabel="Quick add"
               onPress={() => sheet.open('Quick add', [
                 { text: 'Edit profile', onPress: onEdit },
@@ -63,6 +66,7 @@ export function ProfileScreen({ user, onEdit, onLogout, saved, onDismissSaved, g
                 { text: 'Notifications', onPress: () => setPage('notifications') },
                 { text: 'Privacy & safety', onPress: () => setPage('privacy') },
                 { text: 'Help center', onPress: () => setPage('help') },
+                { text: 'Replay app tour', onPress: () => replayTour(user.email) },
               ])}
             >
               <ProfileIcon name="settings" size={22} />
@@ -72,7 +76,7 @@ export function ProfileScreen({ user, onEdit, onLogout, saved, onDismissSaved, g
         <ScrollView style={s.fill} showsVerticalScrollIndicator={false}>
           {/* Identity card */}
           <View style={[s.darkCard, { marginTop: 12, padding: 16, borderRadius: 20 }]}>
-            <Avatar user={user} size={72} />
+            <Avatar user={user} size={72} viewable />
             <View style={{ marginLeft: 16, flex: 1 }}>
               <Text style={[s.darkName, { fontSize: 20 }]}>{user.name}</Text>
               <Text style={s.profileSub}>{user.program} · {user.year}</Text>
@@ -99,7 +103,7 @@ export function ProfileScreen({ user, onEdit, onLogout, saved, onDismissSaved, g
 
           {/* Menu group 2 */}
           <View style={s.menuCard}>
-            <MenuRow icon={<ProfileIcon name="bell" />} tint="#F3D9D6" label="Notifications" value="On" onPress={() => setPage('notifications')} />
+            <MenuRow icon={<ProfileIcon name="bell" />} tint="#F3D9D6" label="Notifications" value={notif.replies || notif.events || notif.recs ? 'On' : 'Off'} onPress={() => setPage('notifications')} />
             <MenuRow icon={<ProfileIcon name="shield" />} tint="#DCEADB" label="Privacy & safety" onPress={() => setPage('privacy')} />
             <MenuRow icon={<ProfileIcon name="help" />} tint="#FBF3D0" label="Help center" onPress={() => setPage('help')} last />
           </View>
@@ -109,7 +113,7 @@ export function ProfileScreen({ user, onEdit, onLogout, saved, onDismissSaved, g
             <View style={s.successBanner}>
               <ProfileIcon name="check" size={18} color={C.green} />
               <Text style={s.successBannerText}>
-                {DEMO_PROFILE_SAVE ? 'Profile saved · Demo only. Original details unchanged.' : 'Profile saved · Your changes are stored on this device.'}
+                Profile saved to your account.
               </Text>
               <TouchableOpacity onPress={onDismissSaved} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                 <ProfileIcon name="close" size={18} />

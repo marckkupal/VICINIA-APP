@@ -4,9 +4,10 @@ import { BackButton } from '../components/BackButton';
 import { OfficeIcon } from '../components/OfficeIcon';
 import { usePopup } from '../components/Popup';
 import {
-  AnnouncementRow, ContactCard, InquiryForm, OfficeHero, OfficeInfoCard, RecentRequests, RequestSummary, ServiceDetail, ServiceRow,
+  ContactCard, InquiryForm, OfficeHero, OfficeInfoCard, RecentRequests, RequestSummary, ServiceDetail, ServiceRow,
 } from '../components/OfficeKit';
-import { EVENTS, OSA } from '../data';
+import { OSA } from '../data';
+import { OfficeEvents } from '../components/OfficeEvents';
 import { useOfficeRequests } from '../requests';
 import { s } from '../styles';
 import { C } from '../theme';
@@ -51,7 +52,6 @@ export function OSAScreen({ user, onBack, onOpenEvent }: { user: User; onBack: (
     if (req) return <RequestSummary req={req} office={OSA} campus={campus} onBack={home} onDone={home} />;
   }
 
-  const announcements = EVENTS.filter((e) => OSA.announcementIds.includes(e.id));
   const rows = OSA.services.filter((x) => x.key === 'orgs' || x.key === 'scholar');
   const tiles = OSA.services.filter((x) => x.key === 'events' || x.key === 'requests');
 
@@ -117,8 +117,7 @@ export function OSAScreen({ user, onBack, onOpenEvent }: { user: User; onBack: (
           <Text style={[s.sectionTitle, { fontSize: 20 }]}>Announcements</Text>
           <Text style={{ fontSize: 14, fontWeight: '800', color: C.muted }}>Upcoming</Text>
         </View>
-        {announcements.map((e) => <AnnouncementRow key={e.id} event={e} onPress={() => onOpenEvent(e.id)} />)}
-        {announcements.length === 0 && <Text style={[s.muted, { fontSize: 13, marginBottom: 14 }]}>No announcements right now. Check back soon.</Text>}
+        <OfficeEvents host="osa" onPress={(e) => onOpenEvent(e.id)} />
 
         <ContactCard title="Contact Student Affairs" sub="Send an inquiry or visit the OSA help desk" onPress={openContact} />
 

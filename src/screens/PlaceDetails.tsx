@@ -1,5 +1,7 @@
 import { Text, TouchableOpacity, View } from 'react-native';
 import { LibPage } from '../components/LibPage';
+import { usePopup } from '../components/Popup';
+import { REPORT_REASONS, reportItem, useHasReported } from '../reports';
 import type { Place } from '../data';
 import { s } from '../styles';
 import { C } from '../theme';
@@ -20,12 +22,42 @@ const ABOUT: Record<string, string> = {
   food: 'A food stop around campus, shown in your nearby places. Check the venue directly for current seating and menu availability.',
   study: 'A study spot around campus, shown in your nearby places. Check the venue directly for current seating and hours.',
   orgs: 'A campus community space, shown in your nearby places. Check with the organization for meeting schedules.',
-  shops: 'A local business posted by its owner. Details come from the owner; confirm hours and prices with the business directly.',
 };
 
-export function PlaceDetails({ place, saved, onToggleSave, onBack, onDirections, backLabel = 'Back to Explore' }: {
+export function PlaceDetails({ place, saved, onToggleSave, onBack, onDirections, backLabel = 'Back to Explore', viewerEmail }: {
   place: Place; saved: boolean; onToggleSave: () => void; onBack: () => void; onDirections?: () => void; backLabel?: string;
+  viewerEmail?: string | null;   // reports are kept per account
 }) {
+  const popup = usePopup();
+  const reported = useHasReported(place.id, viewerEmail);
+
+  const sendReport = (reason: string) => {
+    reportItem(place.id, reason, viewerEmail);
+    popup.show({
+      icon: '✅', iconBg: C.successBg,
+      title: 'Thanks for letting us know',
+      body: `Your report (“${reason}”) was sent (demo). Vicinia reviews reports about listings.`,
+      actions: [{ text: 'Done' }],
+    });
+  };
+  const chooseReason = () => popup.show({
+    icon: '🚩', iconBg: C.errorBg,
+    title: 'Report this place',
+    body: 'What is wrong with this listing? Your report is anonymous.',
+    actions: [
+      ...REPORT_REASONS.map((r) => ({ text: r, style: 'secondary' as const, onPress: () => sendReport(r) })),
+      { text: 'Cancel', style: 'secondary' as const },
+    ],
+  });
+  const options = () => popup.show({
+    icon: '⋯', iconBg: '#F3F1EA',
+    title: 'Listing options',
+    body: place.name,
+    actions: [
+      { text: reported ? 'Already reported' : 'Report listing', style: 'secondary' as const, onPress: reported ? undefined : chooseReason },
+      { text: 'Close', style: 'secondary' as const },
+    ],
+  });
   return (
     <LibPage
       title="Place details"
@@ -53,34 +85,31 @@ export function PlaceDetails({ place, saved, onToggleSave, onBack, onDirections,
         <TouchableOpacity onPress={onToggleSave} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityLabel={saved ? 'Remove bookmark' : 'Bookmark place'}>
           <Text style={{ fontSize: 22, opacity: saved ? 1 : 0.4 }}>🔖</Text>
         </TouchableOpacity>
+        <TouchableOpacity onPress={options} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityRole="button" accessibilityLabel="Listing options" style={{ marginLeft: 14 }}>
+          <Text style={{ fontSize: 20, fontWeight: '900', color: C.muted }}>···</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={{ flexDirection: 'row', marginBottom: 14 }}>
         <View style={[s.lbChip, s.lbChipOn]}><Text style={[s.lbChipText, s.lbChipTextOn]}>{place.type}</Text></View>
-        {!place.business && <View style={s.lbChip}><Text style={s.lbChipText}>{place.distance} away</Text></View>}
-        {place.business && <View style={s.lbChip}><Text style={s.lbChipText}>Posted by owner</Text></View>}
+        <View style={s.lbChip}><Text style={s.lbChipText}>{place.distance} away</Text></View>
       </View>
 
       <View style={[s.evFee, { marginTop: 0 }]}>
         {!!place.price && <Text style={s.evFeeTitle}>{place.price} per person</Text>}
         <Text style={{ fontSize: 13, fontWeight: '800', color: C.green, marginBottom: 8 }}>{place.status}</Text>
-        <Text style={s.lbCardMeta}>{place.business ? 'Posted by the business owner, not verified by Vicinia.' : 'Status from the existing Explore listing, not a live wait estimate.'}</Text>
+        <Text style={s.lbCardMeta}>Status from the existing Explore listing, not a live wait estimate.</Text>
       </View>
-
-      {place.business && (
-        <View style={[s.lbInfoCard, { marginTop: 0 }]}>
-          {!!place.address && (<><Text style={s.lbLabel}>LOCATION</Text><Text style={s.lbValue}>{place.address}</Text></>)}
-          {!!place.hours && (<><Text style={s.lbLabel}>HOURS</Text><Text style={s.lbValue}>{place.hours}</Text></>)}
-          {!!place.contact && (<><Text style={s.lbLabel}>CONTACT</Text><Text style={s.lbValue}>{place.contact}</Text></>)}
-          {!!place.about && (<><Text style={s.lbLabel}>ABOUT</Text><Text style={[s.lbBody, { marginBottom: 0 }]}>{place.about}</Text></>)}
-        </View>
-      )}
 
       <Text style={[s.lbH2, { marginTop: 4 }]}>Before you visit</Text>
       <Text style={{ fontSize: 14, color: C.dark, lineHeight: 21, marginBottom: 14 }}>{ABOUT[place.kind]}</Text>
 
-      {!place.business && <Note text="Address and opening hours aren’t available in this prototype. No live booking, queue or directions are provided." />}
-      {place.business && <Note text="Business listings are written by their owners and are not checked by Vicinia or the school. Meet in public places and use your judgment." />}
+      <Note text="Address and opening hours aren’t available in this prototype. No live booking, queue or directions are provided." />
+
+      <TouchableOpacity onPress={reported ? undefined : chooseReason} activeOpacity={0.7} accessibilityRole="button" style={{ alignSelf: 'center', paddingVertical: 10 }}>
+        <Text style={{ fontSize: 13, fontWeight: '800', color: reported ? C.muted : C.error }}>{reported ? '✓ You reported this listing' : '🚩 Report this listing'}</Text>
+      </TouchableOpacity>
+      {popup.node}
     </LibPage>
   );
 }

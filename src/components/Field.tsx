@@ -5,11 +5,13 @@ import { s } from '../styles';
 import { C } from '../theme';
 
 export function Field({
-  label, icon, value, onChangeText, placeholder, secure, error, keyboardType, autoCapitalize = 'none', half, errorText, helper, multiline, maxLength,
+  label, icon, value, onChangeText, placeholder, secure, error, keyboardType, autoCapitalize = 'none', half, errorText, helper, multiline, maxLength, editable = true,
 }: {
   label: string; icon?: string; value: string; onChangeText: (t: string) => void; placeholder?: string;
   secure?: boolean; error?: boolean; keyboardType?: any; autoCapitalize?: any; half?: boolean;
   errorText?: string; helper?: string; multiline?: boolean; maxLength?: number;
+  // false = shown but not changeable (dimmed)
+  editable?: boolean;
 }) {
   // Password text is masked by default.
   const [hidden, setHidden] = useState(true);
@@ -31,7 +33,7 @@ export function Field({
   return (
     <View style={[styles.wrap, half && styles.half]}>
       <Text style={s.fieldLabel}>{label}</Text>
-      <View style={[s.fieldBox, multiline && styles.multilineBox, (error || !!errorText) && styles.errorBorder]}>
+      <View style={[s.fieldBox, multiline && styles.multilineBox, (error || !!errorText) && styles.errorBorder, !editable && styles.readOnly]}>
         {!!icon && <View style={{ marginRight: 12 }}><EmojiIcon glyph={icon} /></View>}
         <TextInput
           // Remount on toggle: on Android, flipping secureTextEntry in place can leave the text unmasked.
@@ -47,6 +49,7 @@ export function Field({
           keyboardType={keyboardType}
           multiline={multiline}
           maxLength={maxLength}
+          editable={editable}
         />
         {!!secure && (
           <TouchableOpacity
@@ -71,5 +74,6 @@ const styles = StyleSheet.create({
   multilineBox: { height: 120, alignItems: 'flex-start', paddingTop: 12 },
   multilineInput: { height: '100%', textAlignVertical: 'top' },
   errorBorder: { borderColor: C.error },
+  readOnly: { opacity: 0.6 },
   eyeBtn: { marginLeft: 8, padding: 2 },
 });

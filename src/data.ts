@@ -1,5 +1,7 @@
+import type { ImageSourcePropType } from 'react-native';
 import { C } from './theme';
 import type { User, Post, Board } from './types';
+import { loadOrganizations, loadEvents } from './content';
 
 export const POSTS: Post[] = [
   { id: '1', name: 'Vicinia', ini: 'VC', handle: '@vicinia', avatarBg: C.yellow, tag: 'Community', title: 'Weekend market finds', tint: '#E6EDFB', likes: 1200, comments: 48, live: true },
@@ -8,16 +10,8 @@ export const POSTS: Post[] = [
   { id: '4', name: 'Angela Cruz', ini: 'AC', handle: '@angelacruz', avatarBg: '#E6EDFB', tag: 'Study Groups', title: 'Calculus 2 review sheets', tint: '#E3F0E4', likes: 35, comments: 27 },
 ];
 
-export const BOARDS: Board[] = [
-  { id: '1', name: 'Anime Club', label: 'Anime', tagline: 'Talk, recs & watch parties', tint: '#F8E9E5', online: 24, newPosts: 31, members: 340, emoji: '🎌' },
-  { id: '2', name: 'Gaming Club', label: 'Gaming', tagline: 'Co-op, esports & tabletop', tint: '#EDE8F6', online: 61, newPosts: 38, members: 512, emoji: '🎮' },
-  { id: '3', name: 'Tech Club', label: 'Technology', tagline: 'Build nights & career tips', tint: '#E4F1EA', online: 47, newPosts: 40, members: 684, emoji: '💻' },
-  { id: '4', name: 'Sports Club', label: 'Sports', tagline: 'Varsity, pickup & fitness', tint: '#E8F3EA', online: 33, newPosts: 27, members: 428, emoji: '🏀' },
-  { id: '5', name: 'Music Club', label: 'Music', tagline: 'Gigs, playlists & jam sessions', tint: '#E6EBFB', online: 19, newPosts: 19, members: 276, emoji: '🎧' },
-  { id: '6', name: 'Photography Club', label: 'Photography', tagline: 'Shoots, gear & photo walks', tint: '#FDF1C4', online: 38, newPosts: 42, members: 215, emoji: '📷' },
-  { id: '7', name: 'Academics Hub', label: 'Academics', tagline: 'Study groups & class help', tint: '#FFF8E1', online: 72, newPosts: 36, members: 1200, emoji: '📚' },
-  { id: '8', name: 'Campus Events', label: 'Campus Events', tagline: 'What\u2019s happening this week', tint: '#F5EAE6', online: 85, newPosts: 33, members: 1500, emoji: '🎪' },
-];
+// Organizations/boards come from src/content/organizations/**/organization.json (see content/index.ts). Edit the JSON, not this file.
+export const BOARDS: Board[] = loadOrganizations();
 
 export const QUICK = [
   { label: 'Guidance', icon: '💛', bg: '#E8F2EA', border: '#D3E5D6' },
@@ -25,6 +19,15 @@ export const QUICK = [
   { label: 'Clinic', icon: '➕', bg: '#F8E7E2', border: '#EBCFC7' },
   { label: 'OSA', icon: '🎓', bg: '#E6EDFB', border: '#CBD6EE' },
 ];
+
+// Each office page uses the same color as its tile on Home (QUICK above): the hero card, its border, and the small icons inside.
+const tile = (label: string) => QUICK.find((q) => q.label === label)!;
+export const OFFICE_THEME = {
+  guidance: { bg: tile('Guidance').bg, border: tile('Guidance').border, accent: C.green },
+  library: { bg: tile('Library').bg, border: tile('Library').border, accent: C.yellow },
+  clinic: { bg: tile('Clinic').bg, border: tile('Clinic').border, accent: C.orange },
+  osa: { bg: tile('OSA').bg, border: tile('OSA').border, accent: '#3D5FC4' },
+};
 
 export const SLIDES = [
   { icon: '🗺️', kicker: 'EXPLORE NEARBY', title: 'Good spots.\nJust around you.', body: 'Find your next café, food stop or study space on and right around the TIP Quezon City campus.' },
@@ -68,19 +71,25 @@ export const CLINIC = {
   ],
 };
 
-export type PlaceKind = 'study' | 'food' | 'orgs' | 'shops';
+// Student/campus discovery only. Business listings ("shops") are out of scope for Explore.
+export type PlaceKind = 'study' | 'food' | 'orgs';
 export interface Place {
   id: string; name: string; kind: PlaceKind; type: string; price?: string;
   distance: string; status: string; emoji: string;
-  map?: { x: number; y: number }; // illustrative position on the Explore map, in % (not GPS)
-  // Set for places posted by business owners (see businesses.ts).
-  business?: boolean; address?: string; hours?: string; contact?: string; about?: string; ownerEmail?: string;
+  /** Building or area inside the campus, shown in the map popup when known. Left out when not confirmed. */
+  building?: string;
+  /** Which campus (see geo.ts CAMPUSES) this place belongs to. Defaults to TIP Quezon City. */
+  campusId?: string;
+  /** Real, verified position. A place with no coord, an invalid coord, or one outside its campus geofence is listed but never pinned (see geo.ts). */
+  coord?: { lat: number; lng: number };
 }
+// The four places below are sample listings. Their old hand-typed "approximate" coordinates were removed: they were measured
+// against an unverified campus centre and could not be checked. Add `coord` only from a verified source (e.g. OpenStreetMap).
 export const PLACES: Place[] = [
-  { id: '1', name: 'Brew & Books Cafe', kind: 'food', type: 'Cafe', price: '₱120–250', distance: '0.3 km', status: 'Open now', emoji: '☕', map: { x: 27, y: 58 } },
-  { id: '2', name: 'TIP QC Library Study Hall', kind: 'study', type: 'Study space', price: 'Free', distance: '0.5 km', status: 'Open until 9 PM', emoji: '📚', map: { x: 55, y: 24 } },
-  { id: '3', name: 'TIP Photography Society Hub', kind: 'orgs', type: 'Campus community', distance: '0.8 km', status: 'Members here now', emoji: '📷', map: { x: 62, y: 56 } },
-  { id: '4', name: 'Cubao Ramen House', kind: 'food', type: 'Restaurant', price: '₱180–350', distance: '1.2 km', status: 'Busy · 15 min wait', emoji: '🍜', map: { x: 84, y: 76 } },
+  { id: '1', name: 'Brew & Books Cafe', kind: 'food', type: 'Cafe', price: '₱120–250', distance: '0.3 km', status: 'Open now', emoji: '☕' },
+  { id: '2', name: 'TIP QC Library Study Hall', kind: 'study', type: 'Study space', price: 'Free', distance: '0.5 km', status: 'Open until 9 PM', emoji: '📚', building: 'PE Center, 2nd–4th Floors' },
+  { id: '3', name: 'TIP Photography Society Hub', kind: 'orgs', type: 'Campus community', distance: '0.8 km', status: 'Members here now', emoji: '📷' },
+  { id: '4', name: 'Cubao Ramen House', kind: 'food', type: 'Restaurant', price: '₱180–350', distance: '1.2 km', status: 'Busy · 15 min wait', emoji: '🍜' },
 ];
 
 export type LibKind = 'book' | 'eresource';
@@ -118,52 +127,30 @@ export const LIB_RESOURCES: LibResource[] = [
 ];
 
 export interface CampusEvent {
-  id: string; kind: string; fee: number; title: string; icon: string; bg: string;
+  id: string; kind: string;
+  fee: number | null;     // null = the organizer did not list a fee (never shown as "Free")
+  title: string; icon: string; bg: string;
   mon: string; day: string; dateLong: string; dateShort: string; time: string;
   venue: string; campus: string; about: string;
-  host?: 'guidance'; // set when the event is organized by that office
+  host?: 'guidance' | 'osa'; // set when the event is organized by that office
+  startsAt?: number;      // start time in ms since epoch (events from the backend); used for ordering
+  endsAt?: number;        // end time in ms since epoch, when known
+  poster?: ImageSourcePropType; // event poster; shown at its own aspect ratio, never cropped
+  verifiedByHuman?: boolean;    // false = a person has not confirmed the details yet; the app shows "Details unconfirmed"
+  dateTba?: true;               // no date announced yet; shown as "Date TBA"
+  organizationId?: string;      // the organization (content/organizations/<org>) that hosts this event
+  local?: true;           // posted on this device before events were stored on the server
+  endTime?: string;       // e.g. '5:00 PM', shown as a range on the details page
+  address?: string;       // street address under the venue
+  organizer?: string;     // shown in the "Organized by" card
+  going?: number;         // "1,248 students are going"
+  featured?: boolean;     // big dark card at the top of Events
+  image?: ImageSourcePropType; // hero photo: { uri: 'https://…' } or require('./assets/…')
 }
-const GENERIC_ABOUT = 'More details for this campus event will be shared by the organizer.';
-// Sample events for the demo.
-export const EVENTS: CampusEvent[] = [
-  {
-    id: 'film', kind: 'WORKSHOP', fee: 150, title: 'Intro to Film Photography', icon: '📷', bg: '#FDF1C4',
-    mon: 'OCT', day: '10', dateLong: 'Saturday, October 10, 2026', dateShort: 'October 10, 2026', time: '2:00 PM',
-    venue: 'TIP QC Room 201', campus: 'TIP Quezon City',
-    about: 'Explore the basics of film photography, from choosing a camera to working with light. A campus workshop for curious beginners and fellow photography enthusiasts.',
-  },
-  {
-    id: 'hack', kind: 'TECHNOLOGY', fee: 0, title: 'Hackathon Night', icon: '💻', bg: '#E6EDFB',
-    mon: 'OCT', day: '14', dateLong: 'Wednesday, October 14, 2026', dateShort: 'October 14, 2026', time: '6:00 PM',
-    venue: 'TIP QC Computer Lab', campus: 'TIP Quezon City',
-    about: 'Bring your ideas to a campus build night. Work alongside fellow students, explore a problem, and turn a small concept into a project.',
-  },
-  {
-    id: 'semicon', kind: 'TECHNOLOGY', fee: 0, title: 'Semicon Hackathon', icon: '💻', bg: '#E6EDFB',
-    mon: 'OCT', day: '28', dateLong: 'Wednesday, October 28, 2026', dateShort: 'October 28, 2026', time: '1:00 PM',
-    venue: 'Seminar Hall Bldg', campus: 'TIP Quezon City', about: GENERIC_ABOUT,
-  },
-  {
-    id: 'midterms', kind: 'ACADEMIC', fee: 0, title: 'Midterms Review Night', icon: '📚', bg: '#E3F0E4',
-    mon: 'NOV', day: '03', dateLong: 'Tuesday, November 3, 2026', dateShort: 'November 3, 2026', time: '6:00 PM',
-    venue: 'TIP QC Study Plaza', campus: 'TIP Quezon City', about: GENERIC_ABOUT,
-  },
-  {
-    id: 'wellness', kind: 'WELLNESS', fee: 0, title: 'Wellness Day', icon: '🌿', bg: '#E3F0E4',
-    mon: 'NOV', day: '12', dateLong: 'Thursday, November 12, 2026', dateShort: 'November 12, 2026', time: '9:00 AM',
-    venue: 'Clinic & Guidance Office', campus: 'TIP Quezon City', about: GENERIC_ABOUT, host: 'guidance',
-  },
-  {
-    id: 'stress', kind: 'WELLNESS', fee: 0, title: 'Stress Management Workshop', icon: '🧘', bg: '#E3F0E4',
-    mon: 'NOV', day: '19', dateLong: 'Thursday, November 19, 2026', dateShort: 'November 19, 2026', time: '1:00 PM',
-    venue: 'Guidance Office', campus: 'TIP Quezon City', about: GENERIC_ABOUT, host: 'guidance',
-  },
-  {
-    id: 'orient', kind: 'WELLNESS', fee: 0, title: 'Freshman Adjustment Session', icon: '🌱', bg: '#FDF1C4',
-    mon: 'DEC', day: '03', dateLong: 'Thursday, December 3, 2026', dateShort: 'December 3, 2026', time: '10:00 AM',
-    venue: 'Guidance Office', campus: 'TIP Quezon City', about: GENERIC_ABOUT, host: 'guidance',
-  },
-];
+// SAMPLE DATA, NOT USED BY THE APP. Events now come from Firestore (see eventsApi.ts / eventsStore.ts).
+// Kept only as a fixture for tests and for reference when seeding the `events` collection.
+// Source of truth: src/content/organizations/**/event.json (see content/index.ts).
+export const EVENTS: CampusEvent[] = loadEvents();
 
 // Academic programs offered; the abbreviation is what gets saved on the student's profile.
 export const PROGRAMS = [
@@ -185,7 +172,7 @@ export const YEARS = ['1st year', '2nd year', '3rd year', '4th year', '5th year'
 
 // Explore Nearby only covers the TIP Quezon City campus and its immediate surroundings.
 export const EXPLORE_SCOPE = { campus: 'TIP Quezon City', maxDistanceKm: 1 } as const;
-// Places without a listed distance (e.g. posted by a business owner) are kept.
+// Places without a listed distance are kept.
 export const inExploreScope = (distance?: string) => {
   const km = parseFloat(distance ?? '');
   return Number.isNaN(km) || km <= EXPLORE_SCOPE.maxDistanceKm;
@@ -209,7 +196,7 @@ export interface OfficeData {
 }
 
 export const OSA: OfficeData = {
-  office: 'osa', name: 'Office of Student Affairs', short: 'OSA', refPrefix: 'OSA', heroBg: '#E6EDFB', heroIcon: 'users',
+  office: 'osa', name: 'Office of Student Affairs', short: 'OSA', refPrefix: 'OSA', heroBg: OFFICE_THEME.osa.bg, heroIcon: 'users',
   heroTitle: 'Your campus life starts here', tagline: 'Office of Student Affairs',
   blurb: 'Get support for student activities, organizations, leadership, scholarships, and campus participation.',
   info: [
@@ -244,7 +231,7 @@ export const OSA: OfficeData = {
 };
 
 export const GUIDANCE: OfficeData = {
-  office: 'guidance', name: 'Guidance Office', short: 'Guidance', refPrefix: 'GUI', heroBg: '#F7C84B', heroIcon: 'heart',
+  office: 'guidance', name: 'Guidance Office', short: 'Guidance', refPrefix: 'GUI', heroBg: OFFICE_THEME.guidance.bg, heroIcon: 'heart',
   heroTitle: 'You don’t have to figure it out alone.', tagline: 'Confidential support from people who care',
   blurb: 'Sessions are private, free for enrolled TIP students, and available online or in person.',
   info: [

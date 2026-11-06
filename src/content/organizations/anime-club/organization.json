@@ -1,0 +1,12 @@
+{
+  "order": 0,
+  "id": "1",
+  "name": "Anime Club",
+  "label": "Anime",
+  "tagline": "Talk, recs & watch parties",
+  "tint": "#F8E9E5",
+  "online": 24,
+  "newPosts": 31,
+  "members": 340,
+  "emoji": "🎌"
+}

@@ -1,0 +1,18 @@
+{
+  "order": 210,
+  "id": "payopitongpitik",
+  "group": "non-academic",
+  "full_name": "PayoPitongPitik Society",
+  "short_name": "PayoPitongPitik",
+  "category": "Peer Support",
+  "description": "The PayoPitongPitik Society supports students' personal and academic growth through peer guidance, emotional support, and mental-health-focused service, helping members build confidence, leadership, communication skills, and friendships.",
+  "description_verified": false,
+  "tags": [
+    "peer-support",
+    "mental-health"
+  ],
+  "publication_status": "draft_needs_review",
+  "logo": "assets/logo.png",
+  "logo_kind": "crop_of_report_extract_unverified_branding",
+  "featured_event_id": "payopitongpitik-general-assembly"
+}

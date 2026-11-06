@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { LibPage } from '../components/LibPage';
+import { EmptyState } from '../components/EmptyState';
+import { goToTab } from '../navigation';
 import { PLACES } from '../data';
 import { s } from '../styles';
 import { C } from '../theme';
@@ -45,7 +47,7 @@ export function SavedPlaces({ user, onBack, onExplore }: { user: User; onBack: (
       <Text style={[s.muted, { fontSize: 12, marginBottom: 12 }]}>Saved to {user.name} · {campusLabel(user.university)}</Text>
 
       {shown.length === 0 && (
-        <Text style={[s.muted, { fontSize: 13, marginBottom: 14 }]}>No saved places yet. Tap the bookmark on a place to save it.</Text>
+        <EmptyState icon="🔖" title="No saved places yet" body="Tap the bookmark on a place to keep it here." actionLabel="Explore places" onAction={() => goToTab('explore')} />
       )}
       {shown.map((p) => (
         <View key={p.id} style={[s.lbCard, { marginBottom: 14 }]}>

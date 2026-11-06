@@ -1,0 +1,12 @@
+{
+  "order": 205,
+  "id": "into-the-edge",
+  "organization_id": "jissa",
+  "title": "Into the Edge: An Introduction to Linux and Cybersecurity",
+  "date": "2026-10-28",
+  "time": "Batch 1: 8:00 AM-12:00 PM; Batch 2: 1:00-5:00 PM",
+  "venue": "Bldg. 5, Technocore, Rm 5219 & 5221 (MAC Laboratory)",
+  "about": "An introduction to Linux and cybersecurity through the OverTheWire wargames, run in two batches.",
+  "verified_by_human": false,
+  "poster": "event-poster.jpg"
+}

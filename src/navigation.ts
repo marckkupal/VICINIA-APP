@@ -20,3 +20,33 @@ export function useTabRequests(onChange: (t: TabKey) => void) {
     return () => { listeners.delete(l); };
   }, []);
 }
+
+// Open a specific item inside another tab (e.g. a search result on Home -> that event inside the Events tab).
+// The request waits here until the target tab's screen picks it up, whether that screen is already mounted or mounts after the switch.
+export type NavTarget = { kind: 'event' | 'place' | 'board'; id: string };
+const pending: Partial<Record<TabKey, NavTarget>> = {};
+const targetListeners = new Set<() => void>();
+
+export function openInTab(tab: TabKey, target: NavTarget) {
+  pending[tab] = target;
+  targetListeners.forEach((l) => l());
+  goToTab(tab);
+}
+
+// Used by a tab's main screen. Pass enabled=false for embedded copies (e.g. inside Profile) so they ignore requests.
+export function useTabTarget(tab: TabKey, onTarget: (t: NavTarget) => void, enabled = true) {
+  const ref = useRef(onTarget);
+  ref.current = onTarget;
+  useEffect(() => {
+    if (!enabled) return;
+    const take = () => {
+      const t = pending[tab];
+      if (!t) return;
+      delete pending[tab];
+      ref.current(t);
+    };
+    take();
+    targetListeners.add(take);
+    return () => { targetListeners.delete(take); };
+  }, [tab, enabled]);
+}

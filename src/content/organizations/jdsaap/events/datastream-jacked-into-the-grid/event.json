@@ -1,0 +1,12 @@
+{
+  "order": 204,
+  "id": "datastream-jacked-into-the-grid",
+  "organization_id": "jdsaap",
+  "title": "DataStream: Jacked into the Grid",
+  "date": "2026-10-28",
+  "time": "1:00-5:00 PM",
+  "venue": "Rooms Q-5315 & Q-5317",
+  "about": "A hands-on session on extracting, transforming and loading data for data engineering using Microsoft Azure.",
+  "verified_by_human": false,
+  "poster": "event-poster.jpg"
+}

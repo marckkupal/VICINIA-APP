@@ -64,10 +64,12 @@ export const s = StyleSheet.create({
   primaryBtnText: { fontSize: 14, fontWeight: '800', color: C.dark },
 
   // Home / shared
-  homeHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 20, marginTop: 8 },
-  homeTitle: { fontSize: 26, fontWeight: '900', color: C.dark, letterSpacing: 0.5 },
-  bellBtn: { width: 52, height: 52, borderRadius: 26, backgroundColor: '#fff', borderWidth: 1, borderColor: C.border, alignItems: 'center', justifyContent: 'center' },
-  plusBtn: { width: 52, height: 52, borderRadius: 26, backgroundColor: C.yellow, alignItems: 'center', justifyContent: 'center' },
+  homeHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 14, marginTop: 4, minHeight: 44 },
+  homeTitle: { fontSize: 20, fontWeight: '900', color: C.dark, letterSpacing: 0.5 },
+  homeTitleWrap: { flex: 1, minWidth: 0, marginHorizontal: 10, justifyContent: 'center' },
+  homeAvatarBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  bellBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#fff', borderWidth: 1, borderColor: C.border, alignItems: 'center', justifyContent: 'center' },
+  plusBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: C.yellow, alignItems: 'center', justifyContent: 'center' },
   searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderWidth: 1, borderColor: C.border, borderRadius: 18, paddingHorizontal: 16, height: 60, marginBottom: 20 },
   quickRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 28 },
   quickTile: { width: '23.5%', aspectRatio: 1, paddingHorizontal: 2, borderWidth: 1, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
@@ -196,8 +198,6 @@ export const s = StyleSheet.create({
   placeName: { fontSize: 16, fontWeight: '800', color: C.dark },
   placeMeta: { fontSize: 14, color: C.muted, marginTop: 4 },
   placeStatus: { fontSize: 13, fontWeight: '800', color: C.green, marginTop: 6 },
-  bizCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FDF6DC', borderRadius: 16, padding: 14, marginBottom: 16 },
-  bizIcon: { width: 52, height: 52, borderRadius: 14, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   popularCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FDF6DC', borderRadius: 16, padding: 14, marginTop: 4 },
 
   // Tab bar
@@ -276,6 +276,14 @@ export const s = StyleSheet.create({
   modalClose: { position: 'absolute', top: 14, right: 14, width: 36, height: 36, borderRadius: 18, backgroundColor: '#fff', borderWidth: 1, borderColor: C.border, alignItems: 'center', justifyContent: 'center' },
   secondaryBtn: { backgroundColor: '#fff', borderWidth: 1, borderColor: C.border, borderRadius: 12, height: 50, alignItems: 'center', justifyContent: 'center' },
   secondaryBtnText: { fontSize: 14, fontWeight: '800', color: C.dark },
+
+  // Empty states
+  emptyState: { alignItems: 'center', paddingVertical: 28, paddingHorizontal: 24 },
+  emptyIcon: { fontSize: 34, marginBottom: 8 },
+  emptyTitle: { fontSize: 15, fontWeight: '800', color: C.dark, textAlign: 'center' },
+  emptyBody: { fontSize: 13, color: C.muted, textAlign: 'center', marginTop: 4, lineHeight: 18 },
+  emptyAction: { marginTop: 14, minHeight: 44, paddingHorizontal: 20, borderRadius: 22, backgroundColor: C.yellow, alignItems: 'center', justifyContent: 'center' },
+  emptyActionText: { fontSize: 14, fontWeight: '800', color: C.dark },
 
   // Notifications
   notifRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderWidth: 1, borderColor: C.border, borderRadius: 16, padding: 14, marginBottom: 10 },

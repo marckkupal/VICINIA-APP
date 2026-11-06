@@ -1,10 +1,16 @@
 import { Text, View } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { C } from '../theme';
 
-export type LineIconName = 'bell' | 'search' | 'sliders' | 'heart' | 'comment' | 'compass' | 'book' | 'cross' | 'cap' | 'care';
+export type LineIconName = 'bell' | 'search' | 'sliders' | 'heart' | 'comment' | 'compass' | 'book' | 'cross' | 'cap' | 'care' | 'arrowUp' | 'arrowDown';
 
 // Small outline icons built from plain Views (no icon/SVG dependency).
-export function LineIcon({ name, size = 22, color = C.dark }: { name: LineIconName; size?: number; color?: string }) {
+const HEART_PATH = 'M12 20.5s-7.5-4.6-9.2-9.4C1.7 7.9 3.4 4.5 6.8 4.5c2 0 3.6 1.1 5.2 3 1.6-1.9 3.2-3 5.2-3 3.4 0 5.1 3.4 4 6.6-1.7 4.8-9.2 9.4-9.2 9.4Z';
+const ARROW_UP_PATH = 'M12 3.5 3.8 12.5H9v8h6v-8h5.2Z';
+const COMMENT_PATH = 'M4 5.5h16a1.5 1.5 0 0 1 1.5 1.5v9a1.5 1.5 0 0 1-1.5 1.5h-8.2L7 21.5v-4H4A1.5 1.5 0 0 1 2.5 16V7A1.5 1.5 0 0 1 4 5.5Z';
+
+// `filled` paints the inside of heart / comment (used for the liked / opened state).
+export function LineIcon({ name, size = 22, color = C.dark, filled = false }: { name: LineIconName; size?: number; color?: string; filled?: boolean }) {
   const w = Math.max(1.6, size / 13);
   const box = { width: size, height: size, alignItems: 'center', justifyContent: 'center' } as const;
   const abs = { position: 'absolute' } as const;
@@ -37,23 +43,24 @@ export function LineIcon({ name, size = 22, color = C.dark }: { name: LineIconNa
         </View>
       );
     case 'heart':
-      return (
-        <View style={box}>
-          <Text style={{ fontSize: size * 1.05, color, lineHeight: size * 1.15, includeFontPadding: false }}>♡</Text>
-        </View>
-      );
     case 'care':
       return (
-        <View style={box}>
-          <Text style={{ fontSize: size * 1.05, color, lineHeight: size * 1.15, includeFontPadding: false }}>♡</Text>
-        </View>
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+          <Path d={HEART_PATH} stroke={color} strokeWidth={2} strokeLinejoin="round" fill={filled ? color : 'none'} />
+        </Svg>
       );
     case 'comment':
       return (
-        <View style={box}>
-          <View style={{ width: size * 0.82, height: size * 0.62, borderWidth: w, borderColor: color, borderRadius: size * 0.2, marginTop: -size * 0.06 }} />
-          <View style={{ ...abs, left: size * 0.2, bottom: size * 0.12, width: size * 0.2, height: size * 0.2, borderLeftWidth: w, borderBottomWidth: w, borderColor: color, backgroundColor: 'transparent', transform: [{ rotate: '-30deg' }, { skewY: '20deg' }] }} />
-        </View>
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+          <Path d={COMMENT_PATH} stroke={color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" fill={filled ? color : 'none'} />
+        </Svg>
+      );
+    case 'arrowUp':
+    case 'arrowDown':
+      return (
+        <Svg width={size} height={size} viewBox="0 0 24 24" style={name === 'arrowDown' ? { transform: [{ rotate: '180deg' }] } : undefined}>
+          <Path d={ARROW_UP_PATH} stroke={color} strokeWidth={2} strokeLinejoin="round" fill={filled ? color : 'none'} />
+        </Svg>
       );
     case 'compass':
       return (

@@ -1,0 +1,18 @@
+{
+  "order": 40,
+  "organizationId": "8",
+  "id": "midterms",
+  "kind": "ACADEMIC",
+  "fee": 0,
+  "title": "Midterms Review Night",
+  "icon": "📚",
+  "bg": "#E3F0E4",
+  "mon": "NOV",
+  "day": "03",
+  "dateLong": "Tuesday, November 3, 2026",
+  "dateShort": "November 3, 2026",
+  "time": "6:00 PM",
+  "venue": "TIP QC Study Plaza",
+  "campus": "TIP Quezon City",
+  "about": "More details for this campus event will be shared by the organizer."
+}

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { Linking, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { getApp } from '@react-native-firebase/app';
 
 import {
   SplashScreen,
@@ -22,6 +23,9 @@ import { SEED_USERS } from './src/data';
 import { loadUsers, saveUsers } from './src/storage';
 import { C } from './src/theme';
 import type { Stage, TabKey, User } from './src/types';
+
+// Temporary check: confirms Firebase is connected. Remove once confirmed.
+console.log('Firebase project:', getApp().options.projectId);
 
 // Shows any crash on screen instead of a blank/white screen.
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: Error | null }> {
@@ -52,6 +56,8 @@ function Main(): React.JSX.Element {
   const [editing, setEditing] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
+  // The emailed vicinia://reset-password?... link, waiting for RecoveryFlow to use it.
+  const [resetLink, setResetLink] = useState<string | null>(null);
 
   // Splash for ~1.8s, and load any accounts saved on this device.
   useEffect(() => {
@@ -62,6 +68,21 @@ function Main(): React.JSX.Element {
       })
       .catch(() => {});
     return () => clearTimeout(timer);
+  }, []);
+
+  // Catches the password-reset link wherever the app is: closed (cold start), on any screen, or in the background.
+  // It jumps straight to the Change Password screen, which finishes the reset.
+  useEffect(() => {
+    const open = (url?: string | null) => {
+      if (!url || !url.includes('reset-password')) return;
+      setResetLink(url);
+      setEditing(false);
+      setConfirmLogout(false);
+      setStage('forgot');
+    };
+    Linking.getInitialURL().then(open).catch(() => {});
+    const sub = Linking.addEventListener('url', (ev) => open(ev.url));
+    return () => sub.remove();
   }, []);
 
   const addUser = (u: User) => {
@@ -124,7 +145,13 @@ function Main(): React.JSX.Element {
           />
         );
       case 'forgot':
-        return <RecoveryFlow onExit={() => setStage('login')} />;
+        return (
+          <RecoveryFlow
+            onExit={() => setStage('login')}
+            link={resetLink}
+            onLinkHandled={() => setResetLink(null)}
+          />
+        );
       case 'app':
         if (!user) {
           return <WelcomeScreen onSignUp={() => setStage('signup')} onLogin={() => setStage('login')} />;
@@ -135,11 +162,11 @@ function Main(): React.JSX.Element {
         return (
           <View style={styles.fill}>
             <View style={styles.fill}>
-              {tab === 'home' && <HomeScreen user={user} goProfile={() => setTab('profile')} />}
-              {tab === 'explore' && <ExploreScreen user={user} />}
-              {tab === 'boards' && <BoardsScreen user={user} />}
-              {tab === 'events' && <EventsScreen user={user} />}
-              {tab === 'profile' && (
+              {tab === 'home' ? <HomeScreen user={user} goProfile={() => setTab('profile')} /> : null}
+              {tab === 'explore' ? <ExploreScreen user={user} /> : null}
+              {tab === 'boards' ? <BoardsScreen user={user} /> : null}
+              {tab === 'events' ? <EventsScreen user={user} /> : null}
+              {tab === 'profile' ? (
                 <ProfileScreen
                   user={user}
                   onEdit={() => setEditing(true)}
@@ -150,7 +177,7 @@ function Main(): React.JSX.Element {
                   goEvents={() => setTab('events')}
                   goBoards={() => setTab('boards')}
                 />
-              )}
+              ) : null}
             </View>
             <TabBar tab={tab} onChange={setTab} />
             <LogoutModal

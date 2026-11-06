@@ -12,4 +12,6 @@ export const C = {
   green: '#3C9A5F',
   successBg: '#EAF3EC',
   orange: '#E8714A',
+  purple: '#6B4FA3',      // category line on event rows
+  onDarkMuted: '#CFCBBF', // secondary text on dark cards
 };

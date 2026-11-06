@@ -1,0 +1,18 @@
+{
+  "order": 202,
+  "id": "aws-student-builder-group",
+  "group": "academic",
+  "full_name": "AWS Student Builder Group",
+  "short_name": "AWS SBG",
+  "category": "Cloud",
+  "description": "A student-led cloud computing community supported by Amazon Web Services. It introduces students to cloud fundamentals through hands-on workshops, technical projects, certification preparation, and career-focused events.",
+  "description_verified": true,
+  "tags": [
+    "cloud",
+    "aws"
+  ],
+  "publication_status": "draft_needs_review",
+  "logo": "assets/logo.png",
+  "logo_kind": "crop_of_report_extract_unverified_branding",
+  "featured_event_id": "conscious-code-general-assembly-aws-101"
+}

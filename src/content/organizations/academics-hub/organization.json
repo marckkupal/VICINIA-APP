@@ -1,0 +1,12 @@
+{
+  "order": 60,
+  "id": "7",
+  "name": "Academics Hub",
+  "label": "Academics",
+  "tagline": "Study groups & class help",
+  "tint": "#FFF8E1",
+  "online": 72,
+  "newPosts": 36,
+  "members": 1200,
+  "emoji": "📚"
+}

@@ -5,7 +5,7 @@ export type OfficeIconName =
   | 'clock' | 'pin' | 'mail' | 'phone' | 'library' | 'plus' | 'crossOutline' | 'siren'
   | 'calendarPlus' | 'calendarCheck' | 'armchair' | 'message' | 'search'
   | 'stethoscope' | 'bandage' | 'fileHeart' | 'heartPulse' | 'bookOpen'
-  | 'chevronRight' | 'arrowUpRight'
+  | 'chevronRight' | 'arrowUpRight' | 'share' | 'checkCircle' | 'badgeCheck'
   | 'users' | 'cap' | 'heart' | 'shield' | 'leaf' | 'dollar' | 'help' | 'clipboardCheck' | 'calendar';
 
 const HEART = 'M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z';
@@ -44,6 +44,9 @@ export function OfficeIcon({ name, size = 20, color = C.dark, strokeWidth = 1.8 
       {name === 'calendar' && (<><Path {...p} d="M8 2v4" /><Path {...p} d="M16 2v4" /><Rect {...p} x={3} y={4} width={18} height={18} rx={2} /><Path {...p} d="M3 10h18" /></>)}
       {name === 'chevronRight' && <Path {...p} d="m9 18 6-6-6-6" />}
       {name === 'arrowUpRight' && (<><Path {...p} d="M7 7h10v10" /><Path {...p} d="M7 17 17 7" /></>)}
+      {name === 'share' && (<><Circle {...p} cx={18} cy={5} r={3} /><Circle {...p} cx={6} cy={12} r={3} /><Circle {...p} cx={18} cy={19} r={3} /><Path {...p} d="m8.59 13.51 6.83 3.98" /><Path {...p} d="m15.41 6.51-6.82 3.98" /></>)}
+      {name === 'checkCircle' && (<><Circle {...p} cx={12} cy={12} r={10} /><Path {...p} d="m9 12 2 2 4-4" /></>)}
+      {name === 'badgeCheck' && (<><Path {...p} d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.78 4.78 4 4 0 0 1-6.74 0 4 4 0 0 1-4.78-4.78 4 4 0 0 1 0-6.74Z" /><Path {...p} d="m9 12 2 2 4-4" /></>)}
     </Svg>
   );
 }

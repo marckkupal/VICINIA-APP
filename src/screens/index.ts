@@ -24,3 +24,4 @@ export { BoardDetail } from './BoardDetail';
 export { NotificationsPage } from './NotificationsPage';
 export { MemberProfile } from './MemberProfile';
 export { ChatScreen } from './ChatScreen';
+export { CreateBoard } from './CreateBoard';

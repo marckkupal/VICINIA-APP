@@ -1,25 +1,30 @@
-import { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, Keyboard } from 'react-native';
+import { KeyboardScroll } from '../components/KeyboardAware';
 import { useToast } from '../components/Toast';
-import { useActionSheet } from '../components/ActionSheet';
 import { Avatar } from '../components/Avatar';
-import { AppLogo } from '../components/AppLogo';
+import { EmptyState } from '../components/EmptyState';
 import { LineIcon } from '../components/LineIcon';
 import { OfficeIcon } from '../components/OfficeIcon';
 import type { OfficeIconName } from '../components/OfficeIcon';
 import { SearchBar } from '../components/SearchBar';
 import { PostCard } from '../components/PostCard';
-import { PostComposerModal, makePost, POST_TINTS } from '../components/PostSection';
-import { BOARDS, EVENTS, PLACES, POSTS, QUICK } from '../data';
+import { acct } from '../persist';
+import { defaultDestination, homePosts } from '../postTargets';
+import { PLACES, POSTS, QUICK } from '../data';
+import { useAllEvents } from '../userEvents';
+import { useAllBoards } from '../userBoards';
 import { setNotifUser, useNotifications } from '../notifications';
 import type { NotifTarget } from '../notifications';
-import { goToTab } from '../navigation';
-import { personOf } from '../people';
-import { registerEvent, setActiveUser, toggleSavedPlace, useMembership } from '../membership';
+import { goToTab, openInTab } from '../navigation';
+import { maybeStartTour, setTarget } from '../tour';
+import { PEOPLE, personOf } from '../people';
+import { registerEvent, setActiveUser, toggleSavedPlace, unregisterEvent, useMembership } from '../membership';
 import { s } from '../styles';
 import { C } from '../theme';
-import type { Post, User } from '../types';
+import type { TabKey, User } from '../types';
 import { ChatScreen } from './ChatScreen';
+import { CreatePost } from './CreatePost';
 import { ClinicScreen } from './ClinicScreen';
 import { EventDetails, RegistrationPreview } from './EventDetails';
 import { BoardDetail } from './BoardDetail';
@@ -39,7 +44,20 @@ type Route =
   | { k: 'member'; id: string } | { k: 'chat'; id: string } | { k: 'board'; id: string }
   | { k: 'event'; id: string; registered?: boolean } | { k: 'place'; id: string; directions?: boolean };
 
-const POST_TAGS = ['General', 'Study', 'Events', 'Food'];
+// Extra words that should also find each office, and the app pages the search can jump to.
+const OFFICE_WORDS: Record<string, string[]> = {
+  Guidance: ['counseling', 'counselling', 'appointment'],
+  Library: ['books', 'borrow', 'booking', 'study room'],
+  Clinic: ['health', 'medical', 'nurse', 'doctor'],
+  OSA: ['student affairs', 'organizations', 'clubs'],
+};
+const APP_PAGES: { title: string; icon: string; words: string[]; tab?: TabKey; route?: Route }[] = [
+  { title: 'Explore', icon: '🧭', words: ['places', 'map', 'nearby', 'cafe', 'food'], tab: 'explore' },
+  { title: 'Boards', icon: '👥', words: ['communities', 'community', 'clubs', 'groups'], tab: 'boards' },
+  { title: 'Events', icon: '📅', words: ['calendar', 'register', 'schedule'], tab: 'events' },
+  { title: 'My profile', icon: '🙋', words: ['account', 'settings', 'saved'], tab: 'profile' },
+  { title: 'Notifications', icon: '🔔', words: ['alerts', 'updates'], route: { k: 'notifications' } },
+];
 
 const QUICK_ROUTE: Record<string, Route> = {
   Library: { k: 'library' }, Clinic: { k: 'clinic' }, OSA: { k: 'osa' }, Guidance: { k: 'guidance' },
@@ -48,14 +66,17 @@ const QUICK_ROUTE: Record<string, Route> = {
 export function HomeScreen({ user, goProfile }: { user: User; goProfile: () => void }) {
   const [stack, setStack] = useState<Route[]>([]);
   const toast = useToast();
-  const sheet = useActionSheet();
   const [query, setQuery] = useState('');
   const [showAll, setShowAll] = useState(false);
   const [composing, setComposing] = useState(false);
-  const [myPosts, setMyPosts] = useState<Post[]>([]);
+  const myPosts = homePosts.useItems(acct(user.email));
   setActiveUser(user.email);
   setNotifUser(user.email);
   const mem = useMembership(user.email);
+  useEffect(() => { maybeStartTour(user.email); }, [user.email]); // first-time walkthrough; no-op once completed or skipped
+  const allEvents = useAllEvents(); // sample events + events people posted
+  const allBoards = useAllBoards(); // built-in boards + boards people created
+  const allPlaces = PLACES;
   const { unread } = useNotifications();
   const route = stack[stack.length - 1];
   const push = (r: Route) => setStack((st) => [...st, r]);
@@ -74,19 +95,36 @@ export function HomeScreen({ user, goProfile }: { user: User; goProfile: () => v
     }
   };
 
-  const publish = (text: string, i: number, media: string[]) => {
-    setMyPosts((m) => [makePost(`me-${Date.now()}`, user, text, POST_TAGS[i], POST_TINTS[i % POST_TINTS.length], media), ...m]);
-    toast.show('Posted to your feed.');
-  };
   const feed = [...myPosts, ...POSTS];
   const q = query.trim().toLowerCase();
-  const has = (...f: (string | undefined)[]) => f.some((x) => x?.toLowerCase().includes(q));
-  const results: { key: string; icon: string; title: string; sub: string; go: () => void }[] = q ? [
-    ...QUICK.filter((o) => has(o.label)).map((o) => ({ key: `o-${o.label}`, icon: o.icon, title: o.label, sub: 'Campus office', go: () => QUICK_ROUTE[o.label] && push(QUICK_ROUTE[o.label]) })),
-    ...PLACES.filter((p) => has(p.name, p.type, p.kind)).map((p) => ({ key: `p-${p.id}`, icon: p.emoji, title: p.name, sub: `Place · ${p.type}`, go: () => push({ k: 'place', id: p.id }) })),
-    ...EVENTS.filter((e) => has(e.title, e.venue, e.kind)).map((e) => ({ key: `e-${e.id}`, icon: e.icon, title: e.title, sub: `Event · ${e.dateShort}`, go: () => push({ k: 'event', id: e.id }) })),
-    ...BOARDS.filter((b) => has(b.name)).map((b) => ({ key: `b-${b.id}`, icon: b.emoji, title: b.name, sub: `Community · ${b.members} members`, go: () => push({ k: 'board', id: b.id }) })),
-  ] : [];
+  const words = q.split(/\s+/).filter(Boolean);
+  // -1 = no match. Every typed word must appear somewhere in the title or details.
+  // Lower is better: 0 title starts with the text, 1 a title word starts with it, 2 title contains it, 3 only the details match.
+  const rank = (title: string, ...more: (string | undefined)[]) => {
+    const t = title.toLowerCase();
+    const hay = [title, ...more].filter(Boolean).join(' ').toLowerCase();
+    if (!words.every((w) => hay.includes(w))) return -1;
+    if (t.startsWith(q)) return 0;
+    if (t.split(/\s+/).some((w) => w.startsWith(q))) return 1;
+    return t.includes(q) ? 2 : 3;
+  };
+  type Hit = { key: string; icon: string; title: string; sub: string; go: () => void };
+  const hits: (Hit & { r: number })[] = [];
+  const add = (r: number, h: Hit) => { if (r >= 0) hits.push({ ...h, r }); };
+  if (q) {
+    QUICK.forEach((o) => add(rank(o.label, 'campus office', ...(OFFICE_WORDS[o.label] ?? [])), { key: `o-${o.label}`, icon: o.icon, title: o.label, sub: 'Campus office', go: () => QUICK_ROUTE[o.label] && push(QUICK_ROUTE[o.label]) }));
+    allPlaces.forEach((p) => add(rank(p.name, p.type), { key: `p-${p.id}`, icon: p.emoji, title: p.name, sub: `Place · ${p.type}`, go: () => { openInTab('explore', { kind: 'place', id: p.id }); setQuery(''); } }));
+    allEvents.forEach((e) => add(rank(e.title, e.venue, e.kind, e.dateShort), { key: `e-${e.id}`, icon: e.icon, title: e.title, sub: `Event · ${e.dateShort}`, go: () => { openInTab('events', { kind: 'event', id: e.id }); setQuery(''); } }));
+    allBoards.forEach((b) => add(rank(b.name, b.label, b.tagline, b.category, b.description), { key: `b-${b.id}`, icon: b.emoji, title: b.name, sub: b.sample ? `Community · ${b.sampleLabel ?? '[Sample]'}` : `Community · ${b.members} members`, go: () => { openInTab('boards', { kind: 'board', id: b.id }); setQuery(''); } }));
+    Object.values(PEOPLE).forEach((m) => add(rank(m.name, m.handle, m.program, ...m.interests), { key: `m-${m.id}`, icon: '👤', title: m.name, sub: `Student · ${m.program}, ${m.year}`, go: () => push({ k: 'member', id: m.id }) }));
+    APP_PAGES.forEach((a) => add(rank(a.title, ...a.words), { key: `a-${a.title}`, icon: a.icon, title: a.title, sub: 'Page', go: () => {
+      if (a.tab === 'profile') goProfile();
+      else if (a.tab) goToTab(a.tab);
+      else if (a.route) push(a.route);
+      if (a.tab) setQuery('');
+    } }));
+  }
+  const results: Hit[] = hits.sort((a, b) => a.r - b.r).slice(0, 30);
 
   if (route) {
     switch (route.k) {
@@ -95,7 +133,7 @@ export function HomeScreen({ user, goProfile }: { user: User; goProfile: () => v
       case 'osa': return <OSAScreen user={user} onBack={back} onOpenEvent={(id) => push({ k: 'event', id })} />;
       case 'guidance': return <GuidanceScreen user={user} onBack={back} onOpenEvents={() => goToTab('events')} />;
       case 'notifications': return <NotificationsPage onBack={back} onOpen={openTarget} onSettings={() => push({ k: 'notifPrefs' })} />;
-      case 'notifPrefs': return <NotificationsScreen onBack={back} />;
+      case 'notifPrefs': return <NotificationsScreen onBack={back} email={user.email} />;
       case 'member': {
         const person = personOf(route.id);
         if (person) return <MemberProfile person={person} onBack={back} onMessage={() => push({ k: 'chat', id: person.id })} />;
@@ -107,19 +145,19 @@ export function HomeScreen({ user, goProfile }: { user: User; goProfile: () => v
         break;
       }
       case 'board': {
-        const board = BOARDS.find((b) => b.id === route.id);
+        const board = allBoards.find((b) => b.id === route.id);
         if (board) return <BoardDetail board={board} user={user} onBack={back} />;
         break;
       }
       case 'event': {
-        const event = EVENTS.find((e) => e.id === route.id);
+        const event = allEvents.find((e) => e.id === route.id);
         if (!event) break;
         return route.registered
           ? <RegistrationPreview event={event} attendee={user.name} onBack={() => replaceTop({ k: 'event', id: event.id })} onReturn={back} />
-          : <EventDetails event={event} onBack={back} onRegister={() => { registerEvent(user.email, event.id); replaceTop({ k: 'event', id: event.id, registered: true }); }} />;
+          : <EventDetails event={event} onBack={back} registered={mem.events.includes(event.id)} onUnregister={() => unregisterEvent(user.email, event.id)} onRegister={() => { registerEvent(user.email, event.id); replaceTop({ k: 'event', id: event.id, registered: true }); }} />;
       }
       case 'place': {
-        const place = PLACES.find((p) => p.id === route.id);
+        const place = allPlaces.find((p) => p.id === route.id);
         if (!place) break;
         return route.directions
           ? <PlaceDirections place={place} university={user.university} onBack={() => replaceTop({ k: 'place', id: place.id })} />
@@ -129,18 +167,35 @@ export function HomeScreen({ user, goProfile }: { user: User; goProfile: () => v
               saved={mem.places.includes(place.id)}
               onToggleSave={() => toggleSavedPlace(user.email, place.id)}
               onBack={back}
+              viewerEmail={user.email}
               onDirections={place.id === '1' ? () => replaceTop({ k: 'place', id: place.id, directions: true }) : undefined}
             />
           );
       }
     }
   }
+  // The Home "+" opens the shared composer directly: no menu in between. It opens on the destination that matches Home.
+  if (composing) {
+    return <CreatePost user={user} initial={defaultDestination({ tab: 'home' })} onClose={(r) => { setComposing(false); if (r) toast.show(`Posted to ${r.label}.`); }} />;
+  }
   return (
     <View style={s.screen}>
+      {/* Header (Option B): profile top-left, "Vicinia" wordmark, quick add + notifications top-right. All targets are 44pt. */}
       <View style={s.homeHeader}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-          <AppLogo size={56} />
-          <Text style={[s.homeTitle, { marginLeft: 14 }]}>VICINIA</Text>
+        <TouchableOpacity onPress={goProfile} style={s.homeAvatarBtn} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel="Open your profile">
+          <Avatar user={user} size={40} />
+        </TouchableOpacity>
+        <View style={s.homeTitleWrap}>
+          <Text style={s.homeTitle} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} accessibilityRole="header">Vicinia</Text>
+        </View>
+        <View ref={(n) => setTarget('quickadd', n)} collapsable={false} style={{ marginRight: 8 }}>
+          <TouchableOpacity
+            style={s.plusBtn}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Create a post"
+            onPress={() => { Keyboard.dismiss(); setQuery(''); setComposing(true); }}
+          ><Text style={{ fontWeight: '900', fontSize: 24, color: C.dark, marginTop: -2 }}>+</Text></TouchableOpacity>
         </View>
         <TouchableOpacity
           style={s.bellBtn}
@@ -149,27 +204,17 @@ export function HomeScreen({ user, goProfile }: { user: User; goProfile: () => v
           accessibilityRole="button"
           accessibilityLabel={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
         >
-          <LineIcon name="bell" size={24} />
-          {unread > 0 && <View style={[s.redDot, { top: 14, right: 14 }]} />}
+          <LineIcon name="bell" size={20} />
+          {unread > 0 && <View style={[s.redDot, { top: 10, right: 11 }]} />}
         </TouchableOpacity>
-        <TouchableOpacity onPress={goProfile} style={{ marginHorizontal: 12 }}><Avatar user={user} size={54} /></TouchableOpacity>
-        <TouchableOpacity
-          style={s.plusBtn}
-          accessibilityLabel="Quick add"
-          onPress={() => sheet.open('Quick add', [
-            { text: 'New post', onPress: () => { setQuery(''); setComposing(true); } },
-            { text: 'Library', onPress: () => push(QUICK_ROUTE.Library) },
-            { text: 'Notifications', onPress: () => push({ k: 'notifications' }) },
-          ])}
-        ><Text style={{ fontWeight: '900', fontSize: 24, color: C.dark, marginTop: -2 }}>+</Text></TouchableOpacity>
       </View>
-      <ScrollView style={s.fill} showsVerticalScrollIndicator={false}>
+      <KeyboardScroll style={s.fill} showsVerticalScrollIndicator={false}>
         <SearchBar filter value={query} onChangeText={setQuery} />
 
         {q ? (
           <View style={{ marginTop: 4 }}>
             {results.map((r) => (
-              <TouchableOpacity key={r.key} activeOpacity={0.8} onPress={r.go} style={[s.card, { flexDirection: 'row', alignItems: 'center' }]}>
+              <TouchableOpacity key={r.key} activeOpacity={0.8} onPress={() => { Keyboard.dismiss(); r.go(); }} style={[s.card, { flexDirection: 'row', alignItems: 'center' }]}>
                 <Text style={{ fontSize: 24, marginRight: 12 }}>{r.icon}</Text>
                 <View style={{ flex: 1 }}>
                   <Text style={s.postName}>{r.title}</Text>
@@ -177,7 +222,7 @@ export function HomeScreen({ user, goProfile }: { user: User; goProfile: () => v
                 </View>
               </TouchableOpacity>
             ))}
-            {results.length === 0 && <Text style={[s.muted, { textAlign: 'center', marginTop: 24 }]}>No results for “{query.trim()}”.</Text>}
+            {results.length === 0 && <EmptyState icon="🔍" title={`No results for “${query.trim()}”`} body="Check the spelling or try a place, event, board or office name." actionLabel="Clear search" onAction={() => setQuery('')} />}
           </View>
         ) : (
         <View style={s.quickRow}>
@@ -205,15 +250,13 @@ export function HomeScreen({ user, goProfile }: { user: User; goProfile: () => v
             </View>
 
 
-            {(showAll ? feed : feed.slice(0, 3 + myPosts.length)).map((p) => <PostCard key={p.id} p={p} />)}
+            {(showAll ? feed : feed.slice(0, 3 + myPosts.length)).map((p) => <PostCard key={p.id} p={p} user={user} />)}
           </>
         )}
 
-        <PostComposerModal visible={composing} onClose={() => setComposing(false)} onSubmit={publish} tags={POST_TAGS} placeholder="Share something with the community…" />
         {toast.node}
-        {sheet.node}
         <View style={{ height: 12 }} />
-      </ScrollView>
+      </KeyboardScroll>
     </View>
   );
 }

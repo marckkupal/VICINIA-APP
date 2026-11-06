@@ -1,0 +1,12 @@
+{
+  "order": 211,
+  "id": "valorant-summit-5v5",
+  "organization_id": "tempest-gaming-society",
+  "title": "Valorant Summit 5v5",
+  "date": "2026-10-08",
+  "date_end": "2026-10-09",
+  "venue": "PE Center 1",
+  "about": "A 5v5 Valorant tournament event. Registration is through the QR code on the poster.",
+  "verified_by_human": false,
+  "poster": "event-poster.jpg"
+}

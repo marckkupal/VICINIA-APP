@@ -1,0 +1,12 @@
+{
+  "order": 30,
+  "id": "4",
+  "name": "Sports Club",
+  "label": "Sports",
+  "tagline": "Varsity, pickup & fitness",
+  "tint": "#E8F3EA",
+  "online": 33,
+  "newPosts": 27,
+  "members": 428,
+  "emoji": "🏀"
+}

@@ -1,0 +1,19 @@
+{
+  "order": 70,
+  "organizationId": "8",
+  "id": "orient",
+  "kind": "WELLNESS",
+  "fee": 0,
+  "title": "Freshman Adjustment Session",
+  "icon": "🌱",
+  "bg": "#FDF1C4",
+  "mon": "DEC",
+  "day": "03",
+  "dateLong": "Thursday, December 3, 2026",
+  "dateShort": "December 3, 2026",
+  "time": "10:00 AM",
+  "venue": "Guidance Office",
+  "campus": "TIP Quezon City",
+  "about": "More details for this campus event will be shared by the organizer.",
+  "host": "guidance"
+}

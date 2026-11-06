@@ -1,0 +1,12 @@
+{
+  "order": 203,
+  "id": "conscious-code-general-assembly-aws-101",
+  "organization_id": "aws-student-builder-group",
+  "title": "Conscious <code>: General Assembly 2026 & AWS 101 Workshop Kick-off",
+  "date": "2026-10-28",
+  "time": "Morning and afternoon sessions",
+  "venue": "Bldg. 1 Training Room",
+  "about": "A kick-off day for registered members of the AWS Student Builder Group. The morning general assembly covers student leadership, AI governance and data security. The afternoon AWS 101 workshop covers IAM, EC2 and S3.",
+  "verified_by_human": false,
+  "poster": "event-poster.jpg"
+}

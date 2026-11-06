@@ -1,0 +1,18 @@
+{
+  "order": 201,
+  "id": "acm",
+  "group": "academic",
+  "full_name": "Association for Computing Machinery (ACM)",
+  "short_name": "ACM",
+  "category": "Computing",
+  "description": "The T.I.P. ACM Student Chapter helps students explore computing through technical workshops, coding competitions, seminars, and leadership activities. The wider ACM community supports computing as a science and profession.",
+  "description_verified": true,
+  "tags": [
+    "computing",
+    "programming"
+  ],
+  "publication_status": "draft_needs_review",
+  "logo": "assets/logo.png",
+  "logo_kind": "crop_of_report_extract_unverified_branding",
+  "featured_event_id": "code-relay-2026"
+}

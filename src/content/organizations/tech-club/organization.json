@@ -1,0 +1,12 @@
+{
+  "order": 20,
+  "id": "3",
+  "name": "Tech Club",
+  "label": "Technology",
+  "tagline": "Build nights & career tips",
+  "tint": "#E4F1EA",
+  "online": 47,
+  "newPosts": 40,
+  "members": 684,
+  "emoji": "💻"
+}

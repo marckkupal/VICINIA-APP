@@ -10,7 +10,7 @@ export function WelcomeScreen({ onSignUp, onLogin }: { onSignUp: () => void; onL
       <StatusBar barStyle="dark-content" />
       <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 24 }}>
         <LogoMark size={40} />
-        <Text style={[s.navWordmark, { color: C.dark, fontSize: 22 }]}>  vicinia</Text>
+        <Text style={[s.navWordmark, { color: C.dark, fontSize: 22 }]}>  Vicinia</Text>
       </View>
       <Text style={[s.introTitle, { textAlign: 'left', marginTop: 24, fontSize: 36 }]}>Your campus,{'\n'}closer than ever.</Text>
       <Text style={[s.introBody, { textAlign: 'left', paddingHorizontal: 0 }]}>

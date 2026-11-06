@@ -1,0 +1,18 @@
+{
+  "order": 204,
+  "id": "jissa",
+  "group": "academic",
+  "full_name": "Junior Information Systems Security Association (JISSA)",
+  "short_name": "JISSA",
+  "category": "Cybersecurity",
+  "description": "JISSA is a community for aspiring cybersecurity professionals, offering seminars, workshops, and competitions focused on cybersecurity, programming, and systems, along with a supportive peer community.",
+  "description_verified": true,
+  "tags": [
+    "cybersecurity",
+    "information-security"
+  ],
+  "publication_status": "draft_needs_review",
+  "logo": "assets/logo.png",
+  "logo_kind": "crop_of_report_extract_unverified_branding",
+  "featured_event_id": "into-the-edge"
+}

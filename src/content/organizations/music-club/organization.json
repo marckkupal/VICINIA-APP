@@ -1,0 +1,12 @@
+{
+  "order": 40,
+  "id": "5",
+  "name": "Music Club",
+  "label": "Music",
+  "tagline": "Gigs, playlists & jam sessions",
+  "tint": "#E6EBFB",
+  "online": 19,
+  "newPosts": 19,
+  "members": 276,
+  "emoji": "🎧"
+}

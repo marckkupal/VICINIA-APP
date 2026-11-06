@@ -1,0 +1,18 @@
+{
+  "order": 20,
+  "organizationId": "8",
+  "id": "hack",
+  "kind": "TECHNOLOGY",
+  "fee": 0,
+  "title": "Hackathon Night",
+  "icon": "💻",
+  "bg": "#E6EDFB",
+  "mon": "OCT",
+  "day": "14",
+  "dateLong": "Wednesday, October 14, 2026",
+  "dateShort": "October 14, 2026",
+  "time": "6:00 PM",
+  "venue": "TIP QC Computer Lab",
+  "campus": "TIP Quezon City",
+  "about": "Bring your ideas to a campus build night. Work alongside fellow students, explore a problem, and turn a small concept into a project."
+}

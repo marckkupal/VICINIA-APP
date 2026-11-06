@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, ScrollView, Linking } from 'react-native';
 import { BackButton } from '../components/BackButton';
-import { CLINIC } from '../data';
+import { CLINIC, OFFICE_THEME } from '../data';
 import { s } from '../styles';
 import { C } from '../theme';
 import { useToast } from '../components/Toast';
@@ -69,8 +69,8 @@ export function ClinicScreen({ onBack }: { onBack: () => void }) {
         </View>
       </View>
       <ScrollView style={s.fill} showsVerticalScrollIndicator={false}>
-        <View style={s.clinicHero}>
-          <View style={s.clinicHeroIcon}><OfficeIcon name="crossOutline" size={34} color={C.yellow} strokeWidth={1.7} /></View>
+        <View style={[s.clinicHero, { backgroundColor: OFFICE_THEME.clinic.bg, borderWidth: 1, borderColor: OFFICE_THEME.clinic.border }]}>
+          <View style={s.clinicHeroIcon}><OfficeIcon name="crossOutline" size={34} color={OFFICE_THEME.clinic.accent} strokeWidth={1.7} /></View>
           <View style={{ flex: 1 }}>
             <Text style={s.libHeroTitle}>{CLINIC.name}</Text>
             <Text style={s.libHeroBody}>{CLINIC.blurb}</Text>
@@ -81,7 +81,7 @@ export function ClinicScreen({ onBack }: { onBack: () => void }) {
           {CLINIC.info.map((i, idx) => {
             const row = (
               <View style={[s.rowCenter, idx < CLINIC.info.length - 1 && { marginBottom: 10 }]}>
-                <View style={[s.libInfoIcon, { backgroundColor: i.bg }]}><OfficeIcon name={i.icon as OfficeIconName} size={18} /></View>
+                <View style={[s.libInfoIcon, { backgroundColor: OFFICE_THEME.clinic.bg }]}><OfficeIcon name={i.icon as OfficeIconName} size={18} /></View>
                 <View style={{ flex: 1 }}>
                   <Text style={s.libInfoLabel}>{i.label}</Text>
                   <Text style={s.libInfoValue}>{i.value}</Text>

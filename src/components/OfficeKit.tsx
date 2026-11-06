@@ -3,6 +3,7 @@ import { Linking, Text, TouchableOpacity, View } from 'react-native';
 import { usePopup } from './Popup';
 import { OfficeIcon } from './OfficeIcon';
 import type { OfficeIconName } from './OfficeIcon';
+import { OFFICE_THEME } from '../data';
 import type { CampusEvent, OfficeData, OfficeService } from '../data';
 import { s } from '../styles';
 import { C } from '../theme';
@@ -17,9 +18,10 @@ import { Select } from './Select';
 /* ---------- Hub pieces (used by the OSA and Guidance pages) ---------- */
 
 export function OfficeHero({ office }: { office: OfficeData }) {
+  const t = OFFICE_THEME[office.office];
   return (
-    <View style={[s.libHero, { backgroundColor: office.heroBg }]}>
-      <View style={s.libHeroIcon}><OfficeIcon name={office.heroIcon as OfficeIconName} size={32} color={C.yellow} strokeWidth={1.7} /></View>
+    <View style={[s.libHero, { backgroundColor: t.bg, borderWidth: 1, borderColor: t.border }]}>
+      <View style={s.libHeroIcon}><OfficeIcon name={office.heroIcon as OfficeIconName} size={32} color={t.accent} strokeWidth={1.7} /></View>
       <View style={{ flex: 1 }}>
         <Text style={s.libHeroTitle}>{office.heroTitle ?? office.name}</Text>
         <Text style={s.libHeroBody}>{office.blurb}</Text>
@@ -29,11 +31,12 @@ export function OfficeHero({ office }: { office: OfficeData }) {
 }
 
 export function OfficeInfoCard({ office }: { office: OfficeData }) {
+  const t = OFFICE_THEME[office.office];
   return (
     <View style={s.libInfoCard}>
       {office.info.map((i, idx) => (
         <View key={i.key} style={[s.rowCenter, idx < office.info.length - 1 && { marginBottom: 10 }]}>
-          <View style={[s.libInfoIcon, { backgroundColor: i.bg }]}><OfficeIcon name={i.icon as OfficeIconName} size={18} /></View>
+          <View style={[s.libInfoIcon, { backgroundColor: t.bg }]}><OfficeIcon name={i.icon as OfficeIconName} size={18} /></View>
           <View style={{ flex: 1 }}>
             <Text style={s.libInfoLabel}>{i.label}</Text>
             <Text style={s.libInfoValue}>{i.value}</Text>
@@ -45,14 +48,14 @@ export function OfficeInfoCard({ office }: { office: OfficeData }) {
 }
 
 // Simple "how to request an appointment" guide: numbered steps, no form.
-export function AppointmentSteps({ title, steps }: { title: string; steps: { title: string; body: string }[] }) {
+export function AppointmentSteps({ title, steps, color = C.yellow }: { title: string; steps: { title: string; body: string }[]; color?: string }) {
   return (
     <View style={s.lbPlanCard}>
       <Text style={s.lbPlanTitle}>{title}</Text>
       {steps.map((st, i) => (
         <View key={st.title} style={{ flexDirection: 'row', marginTop: 12 }}>
-          <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: C.yellow, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-            <Text style={{ fontWeight: '900', fontSize: 13, color: C.dark }}>{i + 1}</Text>
+          <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: color, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+            <Text style={{ fontWeight: '900', fontSize: 13, color: color === C.yellow ? C.dark : '#fff' }}>{i + 1}</Text>
           </View>
           <View style={{ flex: 1 }}>
             <Text style={s.postName}>{st.title}</Text>

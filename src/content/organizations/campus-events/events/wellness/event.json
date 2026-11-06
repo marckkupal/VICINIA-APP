@@ -1,0 +1,19 @@
+{
+  "order": 50,
+  "organizationId": "8",
+  "id": "wellness",
+  "kind": "WELLNESS",
+  "fee": 0,
+  "title": "Wellness Day",
+  "icon": "🌿",
+  "bg": "#E3F0E4",
+  "mon": "NOV",
+  "day": "12",
+  "dateLong": "Thursday, November 12, 2026",
+  "dateShort": "November 12, 2026",
+  "time": "9:00 AM",
+  "venue": "Clinic & Guidance Office",
+  "campus": "TIP Quezon City",
+  "about": "More details for this campus event will be shared by the organizer.",
+  "host": "guidance"
+}

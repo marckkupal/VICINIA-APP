@@ -1,0 +1,18 @@
+{
+  "order": 30,
+  "organizationId": "8",
+  "id": "semicon",
+  "kind": "TECHNOLOGY",
+  "fee": 0,
+  "title": "Semicon Hackathon",
+  "icon": "💻",
+  "bg": "#E6EDFB",
+  "mon": "OCT",
+  "day": "28",
+  "dateLong": "Wednesday, October 28, 2026",
+  "dateShort": "October 28, 2026",
+  "time": "1:00 PM",
+  "venue": "Seminar Hall Bldg",
+  "campus": "TIP Quezon City",
+  "about": "More details for this campus event will be shared by the organizer."
+}

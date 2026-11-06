@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 import { BackButton } from '../components/BackButton';
 import { Field } from '../components/Field';
@@ -7,11 +7,12 @@ import { PrivacyNote } from '../components/PrivacyNote';
 import { EmojiIcon } from '../components/ProfileIcon';
 import { s } from '../styles';
 import { C } from '../theme';
-import { EMAIL_REGEX, PASSWORD_RULE, isStrongPassword, norm } from '../utils';
+import { isAllowedEmail, norm } from '../utils';
+import { beginPasswordReset, finishPasswordReset, friendlyAuthError, sendPasswordReset } from '../auth';
 
 type Step = 'forgot' | 'sent' | 'reset' | 'done';
 
-function Page({ children, footer, onBack }: { children: ReactNode; footer: ReactNode; onBack: () => void }) {
+function Page({ children, footer, onBack }: { children: ReactNode; footer?: ReactNode; onBack: () => void }) {
   return (
     <KeyboardAvoidingView style={s.fill} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.header}>
@@ -20,22 +21,78 @@ function Page({ children, footer, onBack }: { children: ReactNode; footer: React
       <ScrollView contentContainerStyle={[s.formContent, styles.scrollContent]} keyboardShouldPersistTaps="handled">
         {children}
       </ScrollView>
-      <View style={s.bottomBar}>{footer}</View>
+      {footer ? <View style={s.bottomBar}>{footer}</View> : null}
     </KeyboardAvoidingView>
   );
 }
 
-// Demo-only password recovery: no email is sent and no stored password changes.
-export function RecoveryFlow({ onExit }: { onExit: () => void }) {
+// Forgot password: Firebase emails a confirmation link (no reset form in the email). The link reopens the app at
+// vicinia://reset-password?oobCode=...&email=... App.tsx catches that URL at the root (even on a cold start) and passes it
+// down as `link`, which unlocks the "Change Password" step here.
+export function RecoveryFlow({ onExit, link, onLinkHandled }: { onExit: () => void; link?: string | null; onLinkHandled?: () => void }) {
   const [step, setStep] = useState<Step>('forgot');
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
-  const [pw, setPw] = useState('');
-  const [confirm, setConfirm] = useState('');
-  const [pwError, setPwError] = useState('');
-  const [confirmError, setConfirmError] = useState('');
   const [cooldown, setCooldown] = useState(0);
   const [resent, setResent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const handledCode = useRef('');
+  const [resetEmail, setResetEmail] = useState('');
+  const [linkError, setLinkError] = useState('');
+  const [newPw, setNewPw] = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
+  const [pwErrors, setPwErrors] = useState<{ next?: string; confirm?: string }>({});
+
+  // Handles vicinia://reset-password?oobCode=...&email=... (the emailed link, passed on by the hosted page and App.tsx).
+  useEffect(() => {
+    if (!link || !link.includes('reset-password')) return;
+    const code = /[?&]oobCode=([^&#]+)/.exec(link)?.[1];
+    const mail = /[?&]email=([^&#]+)/.exec(link)?.[1];
+    if (!code || !mail || handledCode.current === code) return;
+    handledCode.current = code;
+    onLinkHandled?.();
+    (async () => {
+      try {
+        const confirmed = await beginPasswordReset(decodeURIComponent(code), decodeURIComponent(mail));
+        setResetEmail(confirmed);
+        setNewPw('');
+        setConfirmPw('');
+        setPwErrors({});
+        setLinkError('');
+        setStep('reset');
+      } catch (e: any) {
+        setLinkError(friendlyAuthError(e));
+        setStep('sent');
+      }
+    })();
+  }, [link]);
+
+  const savePassword = async () => {
+    if (busy) return;
+    const e: { next?: string; confirm?: string } = {};
+    if (newPw.length < 8) e.next = 'Use at least 8 characters.';
+    if (confirmPw !== newPw) e.confirm = 'Passwords do not match.';
+    setPwErrors(e);
+    if (e.next || e.confirm) return;
+    setBusy(true);
+    try {
+      await finishPasswordReset(newPw);
+      setNewPw('');
+      setConfirmPw('');
+      setStep('done');
+    } catch (err: any) {
+      if (err?.code === 'auth/expired-action-code' || err?.code === 'auth/invalid-action-code') {
+        setLinkError(friendlyAuthError(err));
+        setStep('sent');
+      } else if (err?.code === 'auth/weak-password') {
+        setPwErrors({ next: 'Password is too weak. Use at least 8 characters.' });
+      } else {
+        setPwErrors({ confirm: friendlyAuthError(err) });
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -43,25 +100,21 @@ export function RecoveryFlow({ onExit }: { onExit: () => void }) {
     return () => clearTimeout(t);
   }, [cooldown]);
 
-  const resend = () => {
-    if (cooldown > 0) return;
-    setResent(true);
-    setCooldown(30);
-  };
-
-  const send = () => {
-    if (!EMAIL_REGEX.test(norm(email))) return setEmailError('Enter a valid school email, e.g. name@tip.edu.ph.');
+  const send = async (isResend = false) => {
+    if (busy) return;
+    if (!isAllowedEmail(email)) return setEmailError('Use your school email (name@tip.edu.ph) or a Gmail address (name@gmail.com).');
     setEmailError('');
-    setResent(false);
-    setStep('sent');
-  };
-
-  const reset = () => {
-    const pe = isStrongPassword(pw) ? '' : PASSWORD_RULE;
-    const ce = pw && confirm === pw ? '' : 'Both passwords must match.';
-    setPwError(pe);
-    setConfirmError(ce);
-    if (!pe && !ce) setStep('done');
+    setBusy(true);
+    try {
+      await sendPasswordReset(email);
+      setResent(isResend);
+      setCooldown(30);
+      setStep('sent');
+    } catch (e: any) {
+      setEmailError(friendlyAuthError(e));
+    } finally {
+      setBusy(false);
+    }
   };
 
   const textLink = (label: string, onPress: () => void) => (
@@ -70,28 +123,19 @@ export function RecoveryFlow({ onExit }: { onExit: () => void }) {
     </TouchableOpacity>
   );
 
-  if (step === 'sent') {
+  if (step === 'done') {
     return (
-      <Page
-        onBack={() => setStep('forgot')}
-        footer={<>
-          <PrivacyNote text="This is a simulated response. No actual email was sent." />
-          <PrimaryButton label={cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend instructions'} onPress={resend} />
-          {textLink('Return to log in', onExit)}
-        </>}
-      >
-        <Text style={s.formTitle}>Check your inbox.</Text>
-        <Text style={s.formSub}>If an account exists for that school email, recovery instructions would be sent. For your privacy, we don’t confirm whether an account exists.</Text>
-        <View style={s.infoCard}>
-          <View style={s.infoCardRow}>
-            <View style={{ marginRight: 10 }}><EmojiIcon glyph="✉️" /></View>
-            <Text style={s.infoCardText}>In a live service, check your inbox and spam folder, then follow the password reset instructions.</Text>
+      <Page onBack={onExit}>
+        <View style={styles.checkWrap}>
+          <View style={styles.checkCircle}>
+            <Text style={styles.checkMark}>✓</Text>
           </View>
         </View>
-        {resent && <Text style={[s.fieldHelper, { textAlign: 'center', color: '#2E7D4F' }]}>Instructions sent again (simulated).</Text>}
-        <Text style={[s.fieldHelper, { textAlign: 'center' }]}>Need another try? Check your email address before resending.</Text>
-        {textLink('Use a different school email', () => setStep('forgot'))}
-        {textLink('Continue to reset (demo)', () => setStep('reset'))}
+        <Text style={[s.formTitle, { textAlign: 'center' }]}>Password changed!</Text>
+        <Text style={[s.formSub, { textAlign: 'center' }]}>Your password has been updated. Log in with your new password.</Text>
+        <View style={{ marginTop: 8 }}>
+          <PrimaryButton label="Return to Login" onPress={onExit} />
+        </View>
       </Page>
     );
   }
@@ -99,41 +143,41 @@ export function RecoveryFlow({ onExit }: { onExit: () => void }) {
   if (step === 'reset') {
     return (
       <Page
-        onBack={() => setStep('sent')}
+        onBack={onExit}
         footer={<>
-          <PrivacyNote text="Demo only. Your real account password will not change." />
-          <PrimaryButton label="Reset password · Demo" onPress={reset} />
-          {textLink('Return to log in', onExit)}
+          <PrivacyNote text="Your new password is never shown or stored on this device." />
+          <PrimaryButton label="Save" busy={busy} onPress={savePassword} />
         </>}
       >
-        <Text style={s.formTitle}>Set a new password.</Text>
-        <Text style={s.formSub}>Choose a password you haven’t used before for your campus account.</Text>
-        <Field label="New password" icon="🔒" value={pw} onChangeText={(t) => { setPw(t); setPwError(''); }} secure errorText={pwError} />
-        <Field label="Confirm new password" icon="🔒" value={confirm} onChangeText={(t) => { setConfirm(t); setConfirmError(''); }} secure errorText={confirmError} helper="Both passwords must match." />
-        <View style={s.infoCard}>
-          <Text style={s.infoCardTitle}>Password guidance</Text>
-          <Text style={s.infoCardText}>Use at least 8 characters, with an uppercase letter, a lowercase letter, and a number. Avoid using your name or school email.</Text>
-        </View>
+        <Text style={s.formTitle}>Change Password</Text>
+        <Text style={s.formSub}>Choose a new password for {resetEmail}.</Text>
+        <Field label="New password" icon="🔒" value={newPw} onChangeText={(t) => { setNewPw(t); setPwErrors({ ...pwErrors, next: undefined }); }} placeholder="At least 8 characters" secure errorText={pwErrors.next} />
+        <Field label="Confirm new password" icon="🔒" value={confirmPw} onChangeText={(t) => { setConfirmPw(t); setPwErrors({ ...pwErrors, confirm: undefined }); }} placeholder="Re-enter new password" secure errorText={pwErrors.confirm} />
       </Page>
     );
   }
 
-  if (step === 'done') {
+  if (step === 'sent') {
     return (
       <Page
-        onBack={onExit}
+        onBack={() => setStep('forgot')}
         footer={<>
-          <PrivacyNote text="Simulated success only. No authentication service was used and no real password changed." />
-          <PrimaryButton label="Return to log in" onPress={onExit} />
+          <PrivacyNote text="We never confirm whether an email has an account." />
+          <PrimaryButton label={cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend email'} onPress={() => { if (cooldown <= 0) send(true); }} />
+          {textLink('Return to log in', onExit)}
         </>}
       >
-        <Text style={s.formTitle}>You’re all set.</Text>
-        <Text style={s.formSub}>Password reset complete — in this demo. You can return to the log in screen to continue exploring Vicinia.</Text>
-        <View style={s.successCard}>
-          <Text style={s.successIcon}>✓</Text>
-          <Text style={s.successTitle}>Demo password reset complete</Text>
-          <Text style={s.infoCardText}>Keep your password private. Vicinia will never ask you to share it in a campus board or post.</Text>
+        <Text style={s.formTitle}>Check your inbox.</Text>
+        <Text style={s.formSub}>If an account exists for {norm(email)}, we’ve sent a link to reset your password. For your privacy, we don’t confirm whether an account exists.</Text>
+        <View style={s.infoCard}>
+          <View style={s.infoCardRow}>
+            <View style={{ marginRight: 10 }}><EmojiIcon glyph="✉️" /></View>
+            <Text style={s.infoCardText}>Open the email and tap the link to confirm it’s you. The Vicinia app opens and lets you choose a new password. Check your spam folder if you don’t see it.</Text>
+          </View>
         </View>
+        {!!linkError && <Text style={[s.fieldHelper, { textAlign: 'center', color: C.error }]}>{linkError}</Text>}
+        {resent && <Text style={[s.fieldHelper, { textAlign: 'center', color: '#2E7D4F' }]}>Email sent again.</Text>}
+        {textLink('Use a different email', () => setStep('forgot'))}
       </Page>
     );
   }
@@ -142,14 +186,14 @@ export function RecoveryFlow({ onExit }: { onExit: () => void }) {
     <Page
       onBack={onExit}
       footer={<>
-        <PrivacyNote text="Demo only. No recovery email will be sent." />
-        <PrimaryButton label="Send recovery instructions" onPress={send} />
+        <PrivacyNote text="We’ll email you a link to reset your password." />
+        <PrimaryButton label="Send reset link" busy={busy} onPress={() => send(false)} />
         {textLink('Back to log in', onExit)}
       </>}
     >
       <Text style={s.formTitle}>Forgot your password?</Text>
-      <Text style={s.formSub}>Enter your school email to see the recovery instructions for your campus account.</Text>
-      <Field label="School email" icon="✉️" value={email} onChangeText={(t) => { setEmail(t); setEmailError(''); }} placeholder="jdelacruz@tip.edu.ph" keyboardType="email-address" errorText={emailError} helper="Use the school email associated with your account." />
+      <Text style={s.formSub}>Enter your email and we’ll send you a link to reset your password.</Text>
+      <Field label="Email" icon="✉️" value={email} onChangeText={(t) => { setEmail(t); setEmailError(''); }} placeholder="yourname@gmail.com" keyboardType="email-address" errorText={emailError} helper="Use your school email (@tip.edu.ph) or Gmail (@gmail.com)." />
     </Page>
   );
 }
@@ -158,4 +202,7 @@ const styles = StyleSheet.create({
   // Pinned above the scrolling form.
   header: { paddingHorizontal: 20, paddingTop: 20, backgroundColor: C.cream },
   scrollContent: { paddingTop: 0 },
+  checkWrap: { alignItems: 'center', marginTop: 40, marginBottom: 24 },
+  checkCircle: { width: 96, height: 96, borderRadius: 48, backgroundColor: '#2E7D4F', alignItems: 'center', justifyContent: 'center' },
+  checkMark: { color: '#FFFFFF', fontSize: 52, fontWeight: '800', lineHeight: 60 },
 });
